@@ -1,0 +1,83 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Reservas - Yary Nails Studio</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700;900&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<!-- 🔙 Botón Volver -->
+<a href="index.html" class="btn-volver" title="Volver al inicio">
+  <i class="fas fa-arrow-left"></i>
+</a>
+
+<header class="site-header">
+<nav class="navbar">
+  <div class="container">
+  <div class="brand">
+    <div class="brand-text">
+      <h1>Yary Nails Studio</h1>
+      <span class="tagline">BEAUTY ATELIER</span>
+    </div>
+  </div>
+
+    <ul class="nav-links">
+      <li><a href="javascript:history.back()">←</a></li>
+      <li><a href="index.html">Inicio</a></li>
+      <li><a href="nosotras.html">Nosotras</a></li>
+      <li><a href="contacto.html">Contacto</a></li>
+    </ul>
+  </div>
+</nav>
+  </div>
+</header>
+
+<main class="container">
+  <div class="reservation-card">
+    <h2>Reservar cita</h2>
+    <p class="muted">Completa el formulario y recibirás una confirmación inmediata en pantalla.</p>
+    <form id="reservation-form">
+      <form id="reservation-form" method="POST" action="/reservar">
+        <div class="form-row">
+          <div class="field"><input class="input" type="text" name="nombre" placeholder="Nombre completo" required></div>
+          <div class="field"><input class="input" type="tel" name="telefono" placeholder="Teléfono / WhatsApp" required></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><input class="input" type="email" name="email" placeholder="Correo electrónico" required></div>
+          <div class="field">
+        <div class="form-row">
+          <div class="field"><input class="input" type="date" name="fecha" required></div>
+          <div class="field"><input class="input" type="time" name="hora" required></div>
+        </div>
+        <div style="margin-top:20px">
+          <textarea name="notes" placeholder="Observaciones (alergias, preferencia de técnico, etc.)"></textarea>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:10px;justify-content:flex-end">
+          <button class="btn" type="reset">Limpiar</button>
+          <button class="btn primary" type="submit">Enviar reserva</button>
+        </div>
+      </form>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>© 2025 Yary Nails Studio · Tu rincón de glamour y bienestar 🌷</p>
+  </div>
+</footer>
+
+<div id="modal-backdrop" class="modal-backdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div id="modal-message"></div>
+  </div>
+</div>
+
+<script src="assets/js/script.js"></script>
+
+</body>
+</html>

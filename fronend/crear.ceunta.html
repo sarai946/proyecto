@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Crear cuenta - Yary Nails Studio</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #fff0f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .register-container {
+      background: #fff;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      width: 380px;
+      text-align: center;
+    }
+
+    h1 { color: #e91e63; margin-bottom: 10px; }
+    p { color: #777; font-size: 14px; margin-bottom: 20px; }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    button {
+      background: #e91e63;
+      color: #fff;
+      border: none;
+      padding: 12px;
+      width: 100%;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .show-password {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .extra-links { margin-top: 15px; font-size: 14px; }
+    .extra-links a { color: #e91e63; text-decoration: none; }
+  </style>
+</head>
+
+<body>
+
+  <div class="register-container">
+    <h1>Crear cuenta</h1>
+    <p>Únete a Yary Nails y disfruta de nuestros servicios exclusivos ✨</p>
+
+    <!-- FORMULARIO QUE VA A PHP -->
+    <form action="registrar_usuario.php" method="POST">
+
+      <input type="text" name="nombre" placeholder="Nombre completo" required>
+      <input type="email" name="correo" placeholder="Correo electrónico" required>
+      <input type="password" name="contraseña" placeholder="Contraseña" required>
+
+      <div class="show-password">
+        <input type="checkbox" id="verContraseña">
+        <label for="verContraseña">Ver contraseña</label>
+      </div>
+
+      <button type="submit">Crear cuenta</button>
+
+      <div class="extra-links">
+        <p>¿Ya tienes cuenta? <a href="login.html">Inicia sesión</a></p>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // Mostrar / ocultar contraseña
+    document.getElementById('verContraseña').addEventListener('change', function() {
+      const input = document.querySelector('input[name="contraseña"]');
+      input.type = this.checked ? 'text' : 'password';
+    });
+  </script>
+
+</body>
+</html>

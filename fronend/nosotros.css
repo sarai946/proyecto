@@ -1,0 +1,244 @@
+/* 🌸 Estilos generales */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  background-color: #fff8fb;
+  color: #333;
+  line-height: 1.6;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+/* ✨ Animaciones */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 💅 Navbar */
+.navbar {
+  background-color: #ffe6f2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 10%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.logo h1 {
+  font-size: 1.6rem;
+  color: #e91e63;
+  margin-bottom: 2px;
+}
+
+.logo p {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 25px;
+}
+
+nav a {
+  text-decoration: none;
+  color: #444;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+nav a:hover,
+nav a.active {
+  color: #e91e63;
+  border-bottom: 2px solid #e91e63;
+}
+
+/* 🌺 Hero section */
+.about-hero {
+  background: linear-gradient(rgba(255, 230, 242, 0.85), rgba(255, 230, 242, 0.85)),
+              url('img/spa-bg.jpg') center/cover no-repeat;
+  padding: 100px 10%;
+  text-align: center;
+  color: #444;
+  animation: fadeInUp 1.2s ease-in-out;
+}
+
+.about-content h2 {
+  font-size: 2.4rem;
+  color: #e91e63;
+  margin-bottom: 15px;
+}
+
+.about-content p {
+  max-width: 800px;
+  margin: 0 auto;
+  font-size: 1.05rem;
+  color: #555;
+}
+
+/* 💖 Misión y Visión */
+.mision-vision {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  padding: 60px 10%;
+  flex-wrap: wrap;
+}
+
+.mision, .vision {
+  flex: 1;
+  min-width: 300px;
+  background: #fff;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: fadeInUp 1.2s ease-in-out;
+}
+
+.mision:hover, .vision:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+}
+
+.mision h3, .vision h3 {
+  color: #e91e63;
+  margin-bottom: 15px;
+}
+
+/* 👩‍🎨 Equipo */
+.equipo {
+  text-align: center;
+  padding: 80px 10%;
+  background-color: #fff0f7;
+  animation: fadeInUp 1.2s ease-in-out;
+}
+
+.equipo h2 {
+  font-size: 2rem;
+  color: #e91e63;
+  margin-bottom: 20px;
+}
+
+.equipo p {
+  max-width: 700px;
+  margin: 0 auto 40px;
+  color: #555;
+}
+
+.equipo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+}
+
+.miembro {
+  background: #fff;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: fadeInUp 1.3s ease-in-out;
+}
+
+.miembro:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+}
+
+.miembro img {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 15px;
+}
+
+.miembro h4 {
+  color: #e91e63;
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+}
+
+/* 👣 Footer */
+footer {
+  text-align: center;
+  background-color: #ffe6f2;
+  padding: 20px;
+  color: #555;
+  font-size: 0.9rem;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 1s ease-in-out;
+}
+
+/* 📱 Responsive */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  nav ul {
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .about-content h2 {
+    font-size: 2rem;
+  }
+
+  .equipo-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Logo al lado del nombre */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-logo {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e91e63;
+}
+
+/* Opcional: logo flotante arriba izquierda */
+.logo-fixed img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+

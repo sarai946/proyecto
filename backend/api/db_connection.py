@@ -1,14 +1,19 @@
 import mysql.connector
 from mysql.connector import Error
+import os
+from dotenv import load_dotenv
+
+# Cargar variables de entorno
+load_dotenv()
 
 def conectar():
     try:
         connection = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",          # si tu MySQL tiene pass, colócala aquí
-            database="yary_nails", # CAMBIA por tu base de datos
-            port=3306
+            host=os.getenv("MYSQL_HOST", "localhost"),
+            user=os.getenv("MYSQL_USER", "root"),
+            password=os.getenv("MYSQL_PASSWORD", ""),
+            database=os.getenv("MYSQL_DATABASE", "yary_nails"),
+            port=int(os.getenv("MYSQL_PORT", "3306"))
         )
 
         if connection.is_connected():

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Gestión de Usuarios - NAILS</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  
+  <header>
+    <div class="brand">
+      <div class="logo">NA</div>
+      <div>
+        <div style="font-weight:700;color:#111">NAILS</div>
+        <div class="small">Panel de Administración</div>
+      </div>
+    </div>
+    <nav>
+      <a href="javascript:history.back()">←</a>
+      <a href="admin.html">Inicio</a>
+      <a href="usuarios.html" style="color:#b3216e;">Usuarios</a>
+      <a href="reservas.1.html">Reservas</a>
+    </nav>
+  </header>
+
+  <div class="admin-container">
+    <h1>Gestión de Usuarios</h1>
+    <p>Aquí podrás ver, editar y eliminar usuarios del sistema.</p>
+
+    <!-- Tabla de usuarios -->
+    <table style="margin:20px auto; border-collapse:collapse; width:80%; background:white;">
+      <thead style="background:#f8d7e5; color:#d63384;">
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Rol</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaUsuarios"></tbody>
+    </table>
+
+    <a href="admin.html" class="btn-back">Volver al Panel</a>
+  </div>
+
+  <script>
+    function cargarUsuarios() {
+      const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+      const tbody = document.getElementById("tablaUsuarios");
+      tbody.innerHTML = "";
+
+      usuarios.forEach((u, i) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${i+1}</td>
+          <td>${u.nombre || "(Sin nombre)"}</td>
+          <td>${u.email}</td>
+          <td>${u.rol}</td>
+          <td>
+            <button onclick="editarUsuario(${i})">Editar</button>
+            <button onclick="eliminarUsuario(${i})">Eliminar</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function eliminarUsuario(index) {
+      let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+      usuarios.splice(index, 1);
+      localStorage.setItem("usuarios", JSON.stringify(usuarios));
+      cargarUsuarios();
+    }
+
+    function editarUsuario(index) {
+      let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+      const nuevoNombre = prompt("Nuevo nombre:", usuarios[index].nombre);
+      if (nuevoNombre !== null && nuevoNombre.trim() !== "") {
+        usuarios[index].nombre = nuevoNombre;
+      }
+      const nuevoRol = prompt("Nuevo rol (user/admin):", usuarios[index].rol);
+      if (nuevoRol !== null && nuevoRol.trim() !== "") {
+        usuarios[index].rol = nuevoRol;
+      }
+      localStorage.setItem("usuarios", JSON.stringify(usuarios));
+      cargarUsuarios();
+    }
+
+    // Inicializar tabla
+    cargarUsuarios();
+  </script>
+</body>
+</html>

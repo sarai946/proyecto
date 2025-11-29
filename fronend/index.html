@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Yary Nails Studio - Servicios</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700;900&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="navbar">
+    <div class="container">
+      <div class="brand">
+        <div class="brand-text">
+          <h1>Yary Nails Studio</h1>
+          <span class="tagline">BEAUTY ATELIER</span>
+        </div>
+      </div>
+
+      <ul class="nav-links">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="nosotros.html">Nosotras</a></li>
+        <li><a href="contacto.html">Contacto</a></li>
+        <li><a href="login.html" class="logout-btn">Cerrar sesión</a></li>
+      </ul>
+    </div>
+  </nav>
+</header>
+
+<main class="container">
+  <section class="hero">
+    <div class="hero-left">
+      <p class="eyebrow">Catálogo Yary</p>
+      <h1>Ritualiza tu belleza con protocolos conscientes</h1>
+      <p class="lead">Desde diseños acrílicos hechos a medida hasta circuitos spa restauradores. Cada servicio se personaliza según las necesidades de tu piel, cabello y estilo.</p>
+      <div class="features">
+        <div class="feature">Formulación limpia<br><small>Trabajamos con líneas veganas, libres de formol y parabenos.</small></div>
+        <div class="feature">Acompañamiento cálido<br><small>Te guiamos antes y después de cada ritual.</small></div>
+      </div>
+    </div>
+    <div class="hero-right">
+      <img src="assets/img/img_30.jpg" alt="Hero" class="hero-image" style="max-width: 200px; height: auto; object-fit: cover; border-radius: 100px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+    </div>
+  </section>
+
+  <section class="services">
+    <h2>Manicures artísticos y tratamientos</h2>
+    <div class="cards">
+      <article class="card">
+        <img src="assets/img/img_2.jpg" alt="Facial Glow">
+        <h3>Facial Glow con Vitamina C</h3>
+        <p class="muted">Limpieza profunda & masaje kobido</p>
+        <p class="meta-row"><span class="meta">90 minutos</span> <span class="price">$180.000</span></p>
+        <div class="card-actions">
+          <a class="btn primary" href="servicio-facial-glow.html">Ver detalles</a>
+          <a class="btn" href="reservas.html">Reservar</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <img src="assets/img/ima_3.jpg" alt="Keratina">
+        <h3>Keratina Vegana Sublime</h3>
+        <p class="muted">Alisado nutritivo sin formol</p>
+        <p class="meta-row"><span class="meta">120 minutos</span> <span class="price">$250.000</span></p>
+        <div class="card-actions">
+          <a class="btn primary" href="servicio-keratina.html">Ver detalles</a>
+          <a class="btn" href="reservas.html">Reservar</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <img src="assets/img/img_4.jpg" alt="Acrilicas">
+        <h3>Esculpidas Acrílicas Premium</h3>
+        <p class="muted">Acabado espejo & diseño personalizado</p>
+        <p class="meta-row"><span class="meta">150 minutos</span> <span class="price">$200.000</span></p>
+        <div class="card-actions">
+          <a class="btn primary" href="servicio-acrilicas.html">Ver detalles</a>
+          <a class="btn" href="reservas.html">Reservar</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <img src="assets/img/img_5.jpg" alt="Pedicure">
+        <h3>Pedicure Spa con Aromaterapia</h3>
+        <p class="muted">Sales minerales & masaje relajante</p>
+        <p class="meta-row"><span class="meta">75 minutos</span> <span class="price">$130.000</span></p>
+        <div class="card-actions">
+          <a class="btn primary" href="servicio-pedicure.html">Ver detalles</a>
+          <a class="btn" href="reservas.html">Reservar</a>
+        </div>
+      </article>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>© 2025 Yary Nails Studio · Tu rincón de glamour y bienestar 🌷</p>
+    <p>💖 RITUAL NAIL CARE</p>
+    <p>
+      Vive nuestro ritual de uñas sensorial: 120 minutos de belleza y bienestar.<br>
+      Sumérgete en una experiencia única donde la estética y la relajación se encuentran.<br>
+      • Hidratación profunda con extractos naturales<br>
+      • Masaje aromático con aceites de lavanda y almendras<br>
+      • Diseño personalizado con acabados profesionales
+    </p>
+  </div>
+</footer>
+
+<script>
+  // 🔹 Simulación de cierre de sesión
+  document.querySelector('.logout-btn').addEventListener('click', function(e) {
+    e.preventDefault();
+    alert('Has cerrado sesión correctamente 💅');
+    window.location.href = 'login.html'; // Redirige al login
+  });
+</script>
+
+</body>
+</html>

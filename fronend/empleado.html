@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel del Empleado</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f3f3f3;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background: #ff89c0;
+            padding: 20px;
+            color: white;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 900px;
+            margin: 25px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        h2 {
+            color: #333;
+            border-left: 4px solid #ff89c0;
+            padding-left: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table th {
+            background: #ffb8d8;
+            padding: 12px;
+            text-align: left;
+        }
+
+        table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: white;
+            font-size: 14px;
+            margin: 2px;
+        }
+
+        .aceptar { background: #4CAF50; }
+        .reprogramar { background: #f4a100; }
+        .cancelar { background: #e63946; }
+        .estado {
+            font-weight: bold;
+            color: #444;
+        }
+
+        .dias {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .dia-box {
+            background: #ffe4f2;
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .guardar-btn {
+            margin-top: 15px;
+            width: 100%;
+            padding: 12px;
+            background: #ff89c0;
+            color: white;
+            border: none;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .guardar-btn:hover {
+            background: #ff6aa8;
+        }
+    </style>
+</head>
+<body>
+
+<header>Panel del Empleado
+     <ul class="nav-links">
+        <li><a href="login.html" class="logout-btn">Cerrar sesión</a></li>
+      </ul>
+</header>
+<div class="container">
+    <h2>Reservas Asignadas</h2>
+
+    <table id="tablaReservas">
+        <tr>
+            <th>Cliente</th>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Teléfono</th>
+            <th>Servicio</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+
+        <tr>
+            <td>María López</td>
+            <td class="fecha">20/11/2025</td>
+            <td class="hora">10:00 AM</td>
+            <td>3001234567</td>
+            <td>Uñas Acrílicas</td>
+            <td class="estado">Pendiente</td>
+            <td>
+                <button class="btn aceptar">Aceptar</button>
+                <button class="btn reprogramar">Reprogramar</button>
+                <button class="btn cancelar">Cancelar</button>
+            </td>
+        </tr>
+
+        <tr>
+            <td>Ana Ramírez</td>
+            <td class="fecha">21/11/2025</td>
+            <td class="hora">2:00 PM</td>
+            <td>3109876543</td>
+            <td>Pedicure Spa</td>
+            <td class="estado">Pendiente</td>
+            <td>
+                <button class="btn aceptar">Aceptar</button>
+                <button class="btn reprogramar">Reprogramar</button>
+                <button class="btn cancelar">Cancelar</button>
+            </td>
+        </tr>
+
+    </table>
+</div>
+
+<div class="container">
+    <h2>Disponibilidad del Empleado</h2>
+
+    <p>Seleccione los días en los que usted está disponible:</p>
+
+    <div class="dias">
+        <label class="dia-box"><input type="checkbox" value="Lunes"> Lunes</label>
+        <label class="dia-box"><input type="checkbox" value="Martes"> Martes</label>
+        <label class="dia-box"><input type="checkbox" value="Miércoles"> Miércoles</label>
+        <label class="dia-box"><input type="checkbox" value="Jueves"> Jueves</label>
+        <label class="dia-box"><input type="checkbox" value="Viernes"> Viernes</label>
+        <label class="dia-box"><input type="checkbox" value="Sábado"> Sábado</label>
+        <label class="dia-box"><input type="checkbox" value="Domingo"> Domingo</label>
+    </div>
+
+    <button class="guardar-btn" onclick="guardarDisponibilidad()">Guardar Disponibilidad</button>
+</div>
+
+<script>
+    // ------------------------------
+    // BOTONES DE RESERVAS FUNCIONALES
+    // ------------------------------
+    document.addEventListener("click", function(e) {
+        const btn = e.target;
+
+        // ACEPTAR
+        if (btn.classList.contains("aceptar")) {
+            const fila = btn.closest("tr");
+            fila.querySelector(".estado").innerText = "Aceptada";
+            fila.querySelector(".estado").style.color = "#2E8B57";
+            alert("Reserva aceptada.");
+        }
+
+        // CANCELAR
+        if (btn.classList.contains("cancelar")) {
+            if (confirm("¿Seguro que deseas cancelar la reserva?")) {
+                btn.closest("tr").remove();
+            }
+        }
+
+        // REPROGRAMAR
+        if (btn.classList.contains("reprogramar")) {
+            const fila = btn.closest("tr");
+
+            let nuevaFecha = prompt("Ingrese la nueva fecha (dd/mm/aaaa):");
+            let nuevaHora = prompt("Ingrese la nueva hora (ej: 3:00 PM):");
+
+            if (nuevaFecha && nuevaHora) {
+                fila.querySelector(".fecha").innerText = nuevaFecha;
+                fila.querySelector(".hora").innerText = nuevaHora;
+                fila.querySelector(".estado").innerText = "Reprogramada";
+                fila.querySelector(".estado").style.color = "#E67E22";
+                alert("Reserva reprogramada con éxito.");
+            }
+        }
+    });
+
+    // ------------------------------
+    // GUARDAR DISPONIBILIDAD
+    // ------------------------------
+    function guardarDisponibilidad() {
+        const diasSeleccionados = [];
+        document.querySelectorAll('input[type="checkbox"]:checked').forEach(chk => {
+            diasSeleccionados.push(chk.value);
+        });
+
+        localStorage.setItem("disponibilidadEmpleado", JSON.stringify(diasSeleccionados));
+
+        alert("Disponibilidad guardada: " + diasSeleccionados.join(", "));
+    }
+
+    // Cargar disponibilidad guardada automáticamente
+    window.onload = function() {
+        const guardado = JSON.parse(localStorage.getItem("disponibilidadEmpleado"));
+        if (guardado) {
+            document.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+                chk.checked = guardado.includes(chk.value);
+            });
+        }
+    }
+</script>
+
+</body>
+</html>
