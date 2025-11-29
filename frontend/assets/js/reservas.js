@@ -1,5 +1,6 @@
 // ==========================
 //  Gestión de Reservas · Yary Nails
+//  Conectado a API Backend
 // ==========================
 
 // Elementos del DOM
@@ -27,8 +28,78 @@ const telefonoInput = document.getElementById("telefono");
 // ==========================
 //  Variables globales
 // ==========================
-let reservas = JSON.parse(localStorage.getItem("reservas")) || [];
+let reservas = [];
 let editMode = false;
+let editId = null;
+
+// ==========================
+//  Funciones API
+// ==========================
+
+// Cargar reservas desde el backend
+async function cargarReservas() {
+  try {
+    const data = await apiRequest('/reservas');
+    reservas = data.reservas || [];
+    renderReservas();
+  } catch (error) {
+    console.error('Error al cargar reservas:', error);
+    alert('Error al cargar las reservas. Verifica que el backend esté corriendo.');
+  }
+}
+
+// Crear nueva reserva
+async function crearReserva(reserva) {
+  try {
+    const response = await apiRequest('/reservas', {
+      method: 'POST',
+      body: JSON.stringify({
+        fecha: reserva.fecha,
+        hora: reserva.hora,
+        cliente: reserva.cliente,
+        empleado: reserva.empleado,
+        telefono: reserva.telefono
+      })
+    });
+    alert(response.mensaje);
+    await cargarReservas();
+  } catch (error) {
+    alert('Error al crear reserva: ' + error.message);
+  }
+}
+
+// Actualizar reserva existente
+async function actualizarReserva(id, reserva) {
+  try {
+    const response = await apiRequest(`/reservas/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        fecha: reserva.fecha,
+        hora: reserva.hora,
+        cliente: reserva.cliente,
+        empleado: reserva.empleado,
+        telefono: reserva.telefono
+      })
+    });
+    alert(response.mensaje);
+    await cargarReservas();
+  } catch (error) {
+    alert('Error al actualizar reserva: ' + error.message);
+  }
+}
+
+// Eliminar reserva
+async function eliminarReserva(id) {
+  try {
+    const response = await apiRequest(`/reservas/${id}`, {
+      method: 'DELETE'
+    });
+    alert(response.mensaje);
+    await cargarReservas();
+  } catch (error) {
+    alert('Error al eliminar reserva: ' + error.message);
+  }
+}
 
 // ==========================
 //  Funciones principales
@@ -44,7 +115,7 @@ function renderReservas(lista = reservas) {
     return;
   }
 
-  lista.forEach((r, index) => {
+  lista.forEach((r) => {
     const tr = document.createElement("tr");
 
     tr.innerHTML = `
@@ -54,8 +125,8 @@ function renderReservas(lista = reservas) {
       <td>${r.empleado}</td>
       <td>${r.telefono}</td>
       <td>
-        <button class="btn small" onclick="editReserva(${index})">Editar</button>
-        <button class="btn ghost small" onclick="deleteReserva(${index})">Eliminar</button>
+        <button class="btn small" onclick="editReserva(${r.id})">Editar</button>
+        <button class="btn ghost small" onclick="deleteReserva(${r.id})">Eliminar</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -64,17 +135,11 @@ function renderReservas(lista = reservas) {
   totalCount.textContent = lista.length;
 }
 
-// Guardar en localStorage
-function saveReservas() {
-  localStorage.setItem("reservas", JSON.stringify(reservas));
-  renderReservas();
-}
-
 // ==========================
 //  CRUD (Crear, Editar, Eliminar)
 // ==========================
 
-form.addEventListener("submit", (e) => {
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const data = {
@@ -85,22 +150,23 @@ form.addEventListener("submit", (e) => {
     telefono: telefonoInput.value,
   };
 
-  if (editMode) {
-    const index = parseInt(idInput.value);
-    reservas[index] = data;
+  if (editMode && editId) {
+    await actualizarReserva(editId, data);
     editMode = false;
+    editId = null;
   } else {
-    reservas.push(data);
+    await crearReserva(data);
   }
 
-  saveReservas();
   closeModalFunc();
   form.reset();
 });
 
-function editReserva(index) {
-  const r = reservas[index];
-  idInput.value = index;
+async function editReserva(id) {
+  const r = reservas.find(res => res.id === id);
+  if (!r) return;
+
+  idInput.value = id;
   fechaInput.value = r.fecha;
   horaInput.value = r.hora;
   clienteInput.value = r.cliente;
@@ -110,12 +176,12 @@ function editReserva(index) {
   modalTitle.textContent = "Editar reserva";
   modal.classList.add("open");
   editMode = true;
+  editId = id;
 }
 
-function deleteReserva(index) {
+async function deleteReserva(id) {
   if (confirm("¿Eliminar esta reserva?")) {
-    reservas.splice(index, 1);
-    saveReservas();
+    await eliminarReserva(id);
   }
 }
 
@@ -177,6 +243,7 @@ function closeModalFunc() {
   form.reset();
   modalTitle.textContent = "Nueva reserva";
   editMode = false;
+  editId = null;
 }
 
 openAdd.addEventListener("click", () => {
@@ -193,4 +260,5 @@ modal.addEventListener("click", (e) => {
 // ==========================
 //  Inicialización
 // ==========================
-renderReservas();
+cargarReservas();
+
