@@ -1,0 +1,21 @@
+/* Imagen de Avatar por Defecto - Crear manualmente */
+
+/* 
+IMPORTANTE: Necesitas crear o descargar una imagen de avatar predeterminada
+
+Opciones:
+
+1. Usar un generador online:
+   - https://ui-avatars.com/api/?name=User&background=667eea&color=fff&size=200
+   - Guardar como: frontend/assets/img/default-avatar.png
+
+2. Usar una imagen local:
+   - Cualquier imagen cuadrada de 200x200px
+   - Guardarla en: frontend/assets/img/default-avatar.png
+
+3. Usar placeholder dinámico:
+   - En los archivos HTML, reemplazar:
+     src="assets/img/default-avatar.png"
+   - Por:
+     src="https://ui-avatars.com/api/?name=User&background=667eea&color=fff&size=200"
+*/

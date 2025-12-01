@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Empleado - Yary Nails Studio</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/dashboard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body class="dashboard-body">
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h2>Yary Nails</h2>
+    <span class="role-badge empleado">Empleada</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="#dashboard" class="nav-item active">
+      <i class="fas fa-tachometer-alt"></i>
+      <span>Dashboard</span>
+    </a>
+    <a href="#agenda" class="nav-item">
+      <i class="fas fa-calendar-alt"></i>
+      <span>Mi Agenda</span>
+    </a>
+    <a href="#citas-hoy" class="nav-item">
+      <i class="fas fa-calendar-day"></i>
+      <span>Citas de Hoy</span>
+    </a>
+    <a href="#clientes" class="nav-item">
+      <i class="fas fa-users"></i>
+      <span>Clientes</span>
+    </a>
+    <a href="#servicios" class="nav-item">
+      <i class="fas fa-hand-sparkles"></i>
+      <span>Servicios</span>
+    </a>
+    <a href="#perfil" class="nav-item">
+      <i class="fas fa-user-circle"></i>
+      <span>Mi Perfil</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button class="btn-logout" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>Cerrar Sesión</span>
+    </button>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content">
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="btn-menu" id="menuToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+      <h1>Panel de Empleada</h1>
+    </div>
+    <div class="topbar-right">
+      <div class="current-time" id="currentTime">
+        <i class="fas fa-clock"></i>
+        <span>--:--</span>
+      </div>
+      <button class="btn-notification">
+        <i class="fas fa-bell"></i>
+        <span class="badge">1</span>
+      </button>
+      <div class="user-menu">
+        <img src="assets/img/default-avatar.png" alt="Empleada" class="avatar">
+        <span id="userName">Empleada</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="stat-info">
+          <h3 id="citasHoy">0</h3>
+          <p>Citas Hoy</p>
+          <span class="stat-time">Próxima en 30 min</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-info">
+          <h3 id="citasSemana">0</h3>
+          <p>Citas esta Semana</p>
+          <span class="stat-time">8 pendientes</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-info">
+          <h3 id="citasCompletadas">0</h3>
+          <p>Completadas este Mes</p>
+          <span class="stat-change positive">+5 vs mes anterior</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon orange">
+          <i class="fas fa-star"></i>
+        </div>
+        <div class="stat-info">
+          <h3>4.9</h3>
+          <p>Calificación Promedio</p>
+          <span class="stat-reviews">De 45 reseñas</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Citas de Hoy -->
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-calendar-day"></i> Agenda del Día</h3>
+        <div class="date-display" id="todayDate">
+          <i class="fas fa-calendar"></i>
+          <span>--</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="timeline" id="citasTimeline">
+          <div class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i> Cargando agenda...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cards-row">
+      <!-- Próximas Citas -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-clock"></i> Próximas Citas</h3>
+        </div>
+        <div class="card-body">
+          <div class="appointments-list" id="proximasCitas">
+            <div class="loading-state">
+              <i class="fas fa-spinner fa-spin"></i> Cargando...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estadísticas Rápidas -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-chart-pie"></i> Estadísticas del Mes</h3>
+        </div>
+        <div class="card-body">
+          <div class="quick-stats">
+            <div class="quick-stat-item">
+              <span class="stat-label">Total de Citas</span>
+              <span class="stat-value" id="totalCitasMes">0</span>
+            </div>
+            <div class="quick-stat-item">
+              <span class="stat-label">Clientes Atendidos</span>
+              <span class="stat-value" id="clientesAtendidos">0</span>
+            </div>
+            <div class="quick-stat-item">
+              <span class="stat-label">Horas Trabajadas</span>
+              <span class="stat-value" id="horasTrabajadas">0</span>
+            </div>
+            <div class="quick-stat-item">
+              <span class="stat-label">Ingresos Generados</span>
+              <span class="stat-value">$<span id="ingresosGenerados">0</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historial de Citas -->
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-history"></i> Historial Reciente</h3>
+        <div class="filter-buttons">
+          <button class="btn btn-sm active" data-filter="all">Todas</button>
+          <button class="btn btn-sm" data-filter="completadas">Completadas</button>
+          <button class="btn btn-sm" data-filter="canceladas">Canceladas</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fecha y Hora</th>
+                <th>Cliente</th>
+                <th>Servicio</th>
+                <th>Duración</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="historialTable">
+              <tr>
+                <td colspan="6" class="text-center">Cargando...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/empleado-dashboard.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crear Cuenta - Yary Nails Studio</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/login.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<!-- Navbar -->
+<header class="auth-header">
+  <nav class="navbar">
+    <div class="container">
+      <div class="brand">
+        <a href="home.html">
+          <h1>Yary Nails Studio</h1>
+          <span class="tagline">BEAUTY ATELIER</span>
+        </a>
+      </div>
+      <ul class="nav-links">
+        <li><a href="home.html"><i class="fas fa-home"></i> Inicio</a></li>
+        <li><a href="login.html"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</a></li>
+      </ul>
+    </div>
+  </nav>
+</header>
+
+<!-- Register Form -->
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header-content">
+      <div class="auth-icon">
+        <i class="fas fa-user-plus"></i>
+      </div>
+      <h2>Crea tu cuenta</h2>
+      <p>Únete a nuestra comunidad y agenda tu cita</p>
+    </div>
+
+    <form id="registerForm" class="auth-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nombre">
+            <i class="fas fa-user"></i> Nombre
+          </label>
+          <input 
+            type="text" 
+            id="nombre" 
+            name="nombre" 
+            required 
+            placeholder="Tu nombre"
+            autocomplete="given-name"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="apellido">
+            <i class="fas fa-user"></i> Apellido
+          </label>
+          <input 
+            type="text" 
+            id="apellido" 
+            name="apellido" 
+            required 
+            placeholder="Tu apellido"
+            autocomplete="family-name"
+          >
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">
+          <i class="fas fa-envelope"></i> Correo Electrónico
+        </label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          required 
+          placeholder="tu@email.com"
+          autocomplete="email"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="telefono">
+          <i class="fas fa-phone"></i> Teléfono
+        </label>
+        <input 
+          type="tel" 
+          id="telefono" 
+          name="telefono" 
+          required 
+          placeholder="+1 (123) 456-7890"
+          autocomplete="tel"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="password">
+          <i class="fas fa-lock"></i> Contraseña
+        </label>
+        <div class="password-input">
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            required 
+            placeholder="Mínimo 8 caracteres"
+            autocomplete="new-password"
+            minlength="8"
+          >
+          <button type="button" class="toggle-password" onclick="togglePassword('password')">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+        <small class="form-hint">Mínimo 8 caracteres, incluye letras y números</small>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">
+          <i class="fas fa-lock"></i> Confirmar Contraseña
+        </label>
+        <div class="password-input">
+          <input 
+            type="password" 
+            id="confirmPassword" 
+            name="confirmPassword" 
+            required 
+            placeholder="Repite tu contraseña"
+            autocomplete="new-password"
+            minlength="8"
+          >
+          <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword')">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="terms" name="terms" required>
+          <span>Acepto los <a href="#" target="_blank">términos y condiciones</a> y la <a href="#" target="_blank">política de privacidad</a></span>
+        </label>
+      </div>
+
+      <div id="errorMessage" class="error-message" style="display: none;"></div>
+      <div id="successMessage" class="success-message" style="display: none;"></div>
+
+      <button type="submit" class="btn btn-primary btn-block">
+        <i class="fas fa-user-plus"></i> Crear Cuenta
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>¿Ya tienes cuenta? <a href="login.html">Inicia sesión aquí</a></p>
+    </div>
+
+    <div class="social-login">
+      <p class="divider"><span>O regístrate con</span></p>
+      <div class="social-buttons">
+        <button class="btn-social btn-google">
+          <i class="fab fa-google"></i> Google
+        </button>
+        <button class="btn-social btn-facebook">
+          <i class="fab fa-facebook-f"></i> Facebook
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/registro.js"></script>
+
+</body>
+</html>

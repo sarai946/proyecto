@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Cliente - Yary Nails Studio</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/dashboard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body class="dashboard-body">
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h2>Yary Nails</h2>
+    <span class="role-badge cliente">Cliente</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="#dashboard" class="nav-item active">
+      <i class="fas fa-home"></i>
+      <span>Inicio</span>
+    </a>
+    <a href="#mis-reservas" class="nav-item">
+      <i class="fas fa-calendar-alt"></i>
+      <span>Mis Reservas</span>
+    </a>
+    <a href="#agendar" class="nav-item">
+      <i class="fas fa-calendar-plus"></i>
+      <span>Agendar Cita</span>
+    </a>
+    <a href="#servicios" class="nav-item">
+      <i class="fas fa-hand-sparkles"></i>
+      <span>Servicios</span>
+    </a>
+    <a href="#galeria" class="nav-item">
+      <i class="fas fa-images"></i>
+      <span>Galería</span>
+    </a>
+    <a href="#perfil" class="nav-item">
+      <i class="fas fa-user-circle"></i>
+      <span>Mi Perfil</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button class="btn-logout" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>Cerrar Sesión</span>
+    </button>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content">
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="btn-menu" id="menuToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+      <h1>Mi Dashboard</h1>
+    </div>
+    <div class="topbar-right">
+      <button class="btn-notification">
+        <i class="fas fa-bell"></i>
+        <span class="badge">2</span>
+      </button>
+      <div class="user-menu">
+        <img src="assets/img/default-avatar.png" alt="Cliente" class="avatar">
+        <span id="userName">Cliente</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Welcome Banner -->
+    <div class="welcome-banner">
+      <div class="welcome-content">
+        <h2>¡Bienvenida, <span id="clientName">Cliente</span>!</h2>
+        <p>Gestiona tus citas y descubre nuestros servicios de belleza</p>
+      </div>
+      <button class="btn btn-primary" onclick="showAgendarModal()">
+        <i class="fas fa-calendar-plus"></i> Agendar Nueva Cita
+      </button>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="stats-grid stats-cliente">
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="stat-info">
+          <h3 id="misReservas">0</h3>
+          <p>Reservas Activas</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <i class="fas fa-history"></i>
+        </div>
+        <div class="stat-info">
+          <h3 id="reservasCompletadas">0</h3>
+          <p>Citas Completadas</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <i class="fas fa-star"></i>
+        </div>
+        <div class="stat-info">
+          <h3>4.8</h3>
+          <p>Calificación Promedio</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Próximas Citas -->
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-calendar-day"></i> Próximas Citas</h3>
+        <button class="btn btn-sm btn-outline" onclick="showAgendarModal()">
+          <i class="fas fa-plus"></i> Nueva Cita
+        </button>
+      </div>
+      <div class="card-body">
+        <div id="proximasCitas" class="citas-list">
+          <div class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i> Cargando citas...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Servicios Destacados -->
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-sparkles"></i> Servicios Destacados</h3>
+        <a href="#servicios" class="text-link">Ver todos →</a>
+      </div>
+      <div class="card-body">
+        <div class="services-grid" id="serviciosDestacados">
+          <div class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i> Cargando servicios...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historial Reciente -->
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-history"></i> Historial de Citas</h3>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Servicio</th>
+                <th>Empleada</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="historialTable">
+              <tr>
+                <td colspan="5" class="text-center">Cargando...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/cliente-dashboard.js"></script>
+
+</body>
+</html>

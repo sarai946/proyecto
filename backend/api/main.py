@@ -1,15 +1,21 @@
 # main.py
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from db_connection import conectar
 import mysql.connector
-
+from datetime import timedelta
+from auth import (
+    UserLogin, UserRegister, Token,
+    verify_password, get_password_hash, create_access_token,
+    get_current_user, get_current_admin, TokenData,
+    ACCESS_TOKEN_EXPIRE_MINUTES
+)
 
 # Inicializar la aplicación
 app = FastAPI(
     title="Yary Nails API",
-    description="API para gestionar reservas, usuarios y servicios",
-    version="2.0.0"
+    description="API para gestionar reservas, usuarios y servicios con autenticación",
+    version="3.0.0"
 )
 
 # Configurar CORS para permitir peticiones desde el frontend
@@ -20,6 +26,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Lista negra de tokens (en producción usar Redis)
+token_blacklist = set()
 
 # 🟢 Verificar conexión al iniciar el servidor
 @app.on_event("startup")
@@ -41,17 +50,130 @@ def startup_event():
 # 🏠 Ruta raíz
 @app.get("/")
 def root():
-    
-    return {"message": "🚀 API Yeris en funcionamiento"}
+    return {"message": "🚀 API Yary Nails en funcionamiento", "version": "3.0.0"}
 
 
-# 📦 1️⃣ GET - Obtener todos los usuarios
-@app.get("/usuarios")
-def obtener_usuarios():
+# ========================================
+# 🔐 ENDPOINTS DE AUTENTICACIÓN
+# ========================================
+
+@app.post("/auth/register", response_model=Token)
+def register(user: UserRegister):
+    """Registrar nuevo usuario"""
     try:
         conexion = conectar()
         cursor = conexion.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM usuarios;")
+        
+        # Verificar si el email ya existe
+        cursor.execute("SELECT email FROM usuarios WHERE email = %s;", (user.email,))
+        if cursor.fetchone():
+            raise HTTPException(status_code=400, detail="El email ya está registrado")
+        
+        # Hashear contraseña
+        hashed_password = get_password_hash(user.password)
+        
+        # Insertar usuario
+        cursor.execute(
+            "INSERT INTO usuarios (nombre, email, password, telefono, rol) VALUES (%s, %s, %s, %s, %s);",
+            (user.nombre, user.email, hashed_password, user.telefono, user.rol)
+        )
+        conexion.commit()
+        user_id = cursor.lastrowid
+        
+        # Obtener usuario creado
+        cursor.execute("SELECT id, nombre, email, telefono, rol FROM usuarios WHERE id = %s;", (user_id,))
+        usuario = cursor.fetchone()
+        conexion.close()
+        
+        # Crear token
+        access_token = create_access_token(
+            data={"sub": user.email, "rol": user.rol},
+            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        )
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": usuario
+        }
+        
+    except mysql.connector.Error as err:
+        raise HTTPException(status_code=500, detail=f"Error al registrar usuario: {err}")
+
+
+@app.post("/auth/login", response_model=Token)
+def login(credentials: UserLogin):
+    """Iniciar sesión"""
+    try:
+        conexion = conectar()
+        cursor = conexion.cursor(dictionary=True)
+        
+        # Buscar usuario por email
+        cursor.execute("SELECT * FROM usuarios WHERE email = %s;", (credentials.email,))
+        usuario = cursor.fetchone()
+        conexion.close()
+        
+        if not usuario:
+            raise HTTPException(status_code=401, detail="Email o contraseña incorrectos")
+        
+        # Verificar contraseña
+        if not verify_password(credentials.password, usuario['password']):
+            raise HTTPException(status_code=401, detail="Email o contraseña incorrectos")
+        
+        # Crear token
+        access_token = create_access_token(
+            data={"sub": usuario['email'], "rol": usuario['rol']},
+            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        )
+        
+        # Remover password antes de enviar
+        del usuario['password']
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": usuario
+        }
+        
+    except mysql.connector.Error as err:
+        raise HTTPException(status_code=500, detail=f"Error al iniciar sesión: {err}")
+
+
+@app.post("/auth/logout")
+def logout(current_user: TokenData = Depends(get_current_user)):
+    """Cerrar sesión (agregar token a lista negra)"""
+    # En producción, agregar el token a Redis con TTL
+    # Por ahora, solo confirmamos el logout
+    return {"message": "Sesión cerrada exitosamente"}
+
+
+@app.get("/auth/me")
+def get_me(current_user: TokenData = Depends(get_current_user)):
+    """Obtener información del usuario actual"""
+    try:
+        conexion = conectar()
+        cursor = conexion.cursor(dictionary=True)
+        
+        cursor.execute("SELECT id, nombre, email, telefono, rol FROM usuarios WHERE email = %s;", (current_user.email,))
+        usuario = cursor.fetchone()
+        conexion.close()
+        
+        if not usuario:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        
+        return usuario
+        
+    except mysql.connector.Error as err:
+        raise HTTPException(status_code=500, detail=f"Error: {err}")
+
+
+# 📦 1️⃣ GET - Obtener todos los usuarios (solo admin)
+@app.get("/usuarios")
+def obtener_usuarios(current_user: TokenData = Depends(get_current_admin)):
+    try:
+        conexion = conectar()
+        cursor = conexion.cursor(dictionary=True)
+        cursor.execute("SELECT id, nombre, email, telefono, rol FROM usuarios;")
         resultados = cursor.fetchall()
         conexion.close()
         return {"usuarios": resultados}
