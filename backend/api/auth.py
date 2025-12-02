@@ -13,8 +13,8 @@ SECRET_KEY = "yary-nails-secret-key-2025-super-secure-change-in-production"  # C
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 horas
 
-# Contexto para hash de contraseñas
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Contexto para hash de contraseñas con Argon2
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 security = HTTPBearer()
 
 # Modelos Pydantic
@@ -28,15 +28,25 @@ class TokenData(BaseModel):
     rol: Optional[str] = None
 
 class UserLogin(BaseModel):
-    email: str
+    username: str  # Compatible con OAuth2 (puede ser email)
     password: str
 
 class UserRegister(BaseModel):
     nombre: str
+    apellido: str = ""
     email: str
     password: str
     telefono: Optional[str] = None
     rol: str = "cliente"  # Por defecto es cliente
+
+class ReservaCreate(BaseModel):
+    usuario_id: int
+    servicio_id: int
+    empleado_id: int
+    fecha: str
+    hora: str
+    estado: str = "pendiente"
+    notas: Optional[str] = None
 
 # Funciones de utilidad
 

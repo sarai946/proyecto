@@ -25,13 +25,26 @@ const API_CONFIG = {
 async function apiRequest(endpoint, options = {}) {
   const url = `${API_CONFIG.baseURL}${endpoint}`;
   
+  // Obtener token de autenticación
+  const token = localStorage.getItem('auth_token');
+  
   const defaultOptions = {
     headers: {
       'Content-Type': 'application/json',
     },
   };
   
+  // Agregar token si existe
+  if (token) {
+    defaultOptions.headers['Authorization'] = `Bearer ${token}`;
+  }
+  
   const finalOptions = { ...defaultOptions, ...options };
+  
+  // Merge headers si vienen en options
+  if (options.headers) {
+    finalOptions.headers = { ...defaultOptions.headers, ...options.headers };
+  }
   
   try {
     const response = await fetch(url, finalOptions);
@@ -51,3 +64,31 @@ async function apiRequest(endpoint, options = {}) {
 // Exportar para uso en otros archivos
 window.API_CONFIG = API_CONFIG;
 window.apiRequest = apiRequest;
+
+// ========================================
+// FUNCIONES DE AUTENTICACIÓN
+// ========================================
+
+// Verificar si el usuario está autenticado
+function isAuthenticated() {
+  const token = localStorage.getItem('auth_token');
+  const user = localStorage.getItem('user');
+  return token && user;
+}
+
+// Obtener usuario actual
+function getCurrentUser() {
+  const userStr = localStorage.getItem('user');
+  if (userStr) {
+    try {
+      return JSON.parse(userStr);
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+}
+
+// Exportar funciones de auth
+window.isAuthenticated = isAuthenticated;
+window.getCurrentUser = getCurrentUser;

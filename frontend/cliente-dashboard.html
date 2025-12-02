@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Cliente - Yary Nails Studio</title>
-  <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="stylesheet" href="assets/css/dashboard.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <title>Mi Dashboard - Yary Nails Studio</title>
+  <link rel="stylesheet" href="assets/css/cliente-dashboard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body class="dashboard-body">
@@ -19,27 +18,27 @@
   </div>
 
   <nav class="sidebar-nav">
-    <a href="#dashboard" class="nav-item active">
+    <a href="#" class="nav-item active" data-section="inicio">
       <i class="fas fa-home"></i>
       <span>Inicio</span>
     </a>
-    <a href="#mis-reservas" class="nav-item">
-      <i class="fas fa-calendar-alt"></i>
+    <a href="#" class="nav-item" data-section="mis-reservas">
+      <i class="fas fa-calendar-check"></i>
       <span>Mis Reservas</span>
     </a>
-    <a href="#agendar" class="nav-item">
+    <a href="#" class="nav-item" data-section="agendar">
       <i class="fas fa-calendar-plus"></i>
       <span>Agendar Cita</span>
     </a>
-    <a href="#servicios" class="nav-item">
+    <a href="#" class="nav-item" data-section="servicios">
       <i class="fas fa-hand-sparkles"></i>
       <span>Servicios</span>
     </a>
-    <a href="#galeria" class="nav-item">
+    <a href="#" class="nav-item" data-section="galeria">
       <i class="fas fa-images"></i>
       <span>Galería</span>
     </a>
-    <a href="#perfil" class="nav-item">
+    <a href="#" class="nav-item" data-section="perfil">
       <i class="fas fa-user-circle"></i>
       <span>Mi Perfil</span>
     </a>
@@ -61,15 +60,15 @@
       <button class="btn-menu" id="menuToggle">
         <i class="fas fa-bars"></i>
       </button>
-      <h1>Mi Dashboard</h1>
+      <h1 id="pageTitle">Inicio</h1>
     </div>
     <div class="topbar-right">
       <button class="btn-notification">
         <i class="fas fa-bell"></i>
-        <span class="badge">2</span>
+        <span class="badge" id="notificationCount">0</span>
       </button>
       <div class="user-menu">
-        <img src="assets/img/default-avatar.png" alt="Cliente" class="avatar">
+        <img id="userAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" alt="Avatar" class="avatar">
         <span id="userName">Cliente</span>
       </div>
     </div>
@@ -77,110 +76,296 @@
 
   <!-- Dashboard Content -->
   <div class="dashboard-content">
-    <!-- Welcome Banner -->
-    <div class="welcome-banner">
-      <div class="welcome-content">
-        <h2>¡Bienvenida, <span id="clientName">Cliente</span>!</h2>
-        <p>Gestiona tus citas y descubre nuestros servicios de belleza</p>
-      </div>
-      <button class="btn btn-primary" onclick="showAgendarModal()">
-        <i class="fas fa-calendar-plus"></i> Agendar Nueva Cita
-      </button>
-    </div>
-
-    <!-- Quick Stats -->
-    <div class="stats-grid stats-cliente">
-      <div class="stat-card">
-        <div class="stat-icon purple">
-          <i class="fas fa-calendar-check"></i>
+    
+    <!-- SECCIÓN: INICIO -->
+    <section id="inicio-section" class="content-section active">
+      <div class="welcome-banner">
+        <div class="welcome-content">
+          <h2>¡Bienvenida, <span id="clientName">Cliente</span>!</h2>
+          <p>Gestiona tus citas y descubre nuestros servicios de belleza</p>
         </div>
-        <div class="stat-info">
-          <h3 id="misReservas">0</h3>
-          <p>Reservas Activas</p>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon blue">
-          <i class="fas fa-history"></i>
-        </div>
-        <div class="stat-info">
-          <h3 id="reservasCompletadas">0</h3>
-          <p>Citas Completadas</p>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon green">
-          <i class="fas fa-star"></i>
-        </div>
-        <div class="stat-info">
-          <h3>4.8</h3>
-          <p>Calificación Promedio</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Próximas Citas -->
-    <div class="card">
-      <div class="card-header">
-        <h3><i class="fas fa-calendar-day"></i> Próximas Citas</h3>
-        <button class="btn btn-sm btn-outline" onclick="showAgendarModal()">
-          <i class="fas fa-plus"></i> Nueva Cita
+        <button class="btn btn-primary" onclick="showSection('agendar')">
+          <i class="fas fa-calendar-plus"></i> Agendar Nueva Cita
         </button>
       </div>
-      <div class="card-body">
-        <div id="proximasCitas" class="citas-list">
-          <div class="loading-state">
-            <i class="fas fa-spinner fa-spin"></i> Cargando citas...
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon purple">
+            <i class="fas fa-calendar-check"></i>
+          </div>
+          <div class="stat-info">
+            <h3 id="statsReservasActivas">0</h3>
+            <p>Reservas Activas</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="stat-info">
+            <h3 id="statsReservasCompletadas">0</h3>
+            <p>Completadas</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">
+            <i class="fas fa-star"></i>
+          </div>
+          <div class="stat-info">
+            <h3>4.8</h3>
+            <p>Calificación</p>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Servicios Destacados -->
-    <div class="card">
-      <div class="card-header">
-        <h3><i class="fas fa-sparkles"></i> Servicios Destacados</h3>
-        <a href="#servicios" class="text-link">Ver todos →</a>
+      <div class="section-card">
+        <div class="section-header">
+          <h3><i class="fas fa-calendar-alt"></i> Próximas Citas</h3>
+          <button class="btn btn-sm btn-outline" onclick="showSection('mis-reservas')">Ver todas</button>
+        </div>
+        <div id="proximasCitasContainer"></div>
       </div>
-      <div class="card-body">
-        <div class="services-grid" id="serviciosDestacados">
-          <div class="loading-state">
-            <i class="fas fa-spinner fa-spin"></i> Cargando servicios...
+
+      <div class="section-card">
+        <div class="section-header">
+          <h3><i class="fas fa-images"></i> Galería de Nuestro Trabajo</h3>
+          <button class="btn btn-sm btn-outline" onclick="showSection('galeria')">Ver más</button>
+        </div>
+        
+        <!-- Mini Carrusel para Inicio -->
+        <div class="mini-carousel-container">
+          <button class="mini-carousel-btn prev" onclick="moveMiniCarousel(-1)">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          
+          <div class="mini-carousel-wrapper">
+            <div id="miniCarouselTrack" class="mini-carousel-track">
+              <!-- Las imágenes se cargarán dinámicamente aquí -->
+            </div>
+          </div>
+          
+          <button class="mini-carousel-btn next" onclick="moveMiniCarousel(1)">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        
+        <!-- Indicadores del mini carrusel -->
+        <div id="miniCarouselIndicators" class="mini-carousel-indicators"></div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: MIS RESERVAS -->
+    <section id="mis-reservas-section" class="content-section">
+      <div class="section-card">
+        <div class="section-header">
+          <h3><i class="fas fa-calendar-check"></i> Mis Reservas</h3>
+          <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterReservas('todas')">Todas</button>
+            <button class="filter-tab" onclick="filterReservas('pendiente')">Pendientes</button>
+            <button class="filter-tab" onclick="filterReservas('confirmada')">Confirmadas</button>
+            <button class="filter-tab" onclick="filterReservas('completada')">Completadas</button>
+          </div>
+        </div>
+        <div id="reservasContainer"></div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: AGENDAR CITA -->
+    <section id="agendar-section" class="content-section">
+      <div class="section-card">
+        <div class="section-header">
+          <h3><i class="fas fa-calendar-plus"></i> Agendar Nueva Cita</h3>
+        </div>
+        <form id="agendarForm">
+          <div class="form-group">
+            <label><i class="fas fa-hand-sparkles"></i> Servicio</label>
+            <select id="servicioSelect" required></select>
+          </div>
+          <div class="form-group">
+            <label><i class="fas fa-user"></i> Especialista</label>
+            <select id="empleadoSelect" required></select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label><i class="fas fa-calendar"></i> Fecha</label>
+              <input type="date" id="fechaCita" required>
+            </div>
+            <div class="form-group">
+              <label><i class="fas fa-clock"></i> Hora</label>
+              <select id="horaCita" required></select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label><i class="fas fa-comment"></i> Notas (Opcional)</label>
+            <textarea id="notasCita" rows="3" placeholder="Preferencias o comentarios..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">
+            <i class="fas fa-check"></i> Confirmar Cita
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: SERVICIOS -->
+    <section id="servicios-section" class="content-section">
+      <div class="section-card">
+        <div class="section-header">
+          <h3><i class="fas fa-hand-sparkles"></i> Nuestros Servicios</h3>
+        </div>
+        <div id="todosServiciosContainer" class="servicios-catalog"></div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: GALERÍA -->
+    <section id="galeria-section" class="content-section">
+      <div class="section-card">
+        <div class="section-header">
+          <h3><i class="fas fa-images"></i> Galería de Diseños</h3>
+          <p>Inspiración para tu próxima cita</p>
+        </div>
+        
+        <!-- Carrusel de Galería -->
+        <div class="carousel-container">
+          <button class="carousel-btn prev" onclick="moveCarousel(-1)">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          
+          <div class="carousel-wrapper">
+            <div id="carouselTrack" class="carousel-track">
+              <!-- Las imágenes se cargarán dinámicamente aquí -->
+            </div>
+          </div>
+          
+          <button class="carousel-btn next" onclick="moveCarousel(1)">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        
+        <!-- Indicadores -->
+        <div id="carouselIndicators" class="carousel-indicators"></div>
+        
+        <!-- Thumbnails -->
+        <div id="carouselThumbnails" class="carousel-thumbnails"></div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: MI PERFIL -->
+    <section id="perfil-section" class="content-section">
+      <div class="profile-container">
+        <div class="profile-card">
+          <div class="profile-header">
+            <img id="perfilAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" alt="Avatar" class="profile-avatar">
+            <button class="btn btn-sm btn-outline" onclick="cambiarAvatar()">
+              <i class="fas fa-camera"></i> Cambiar Avatar
+            </button>
+          </div>
+          <div class="profile-info">
+            <h3 id="perfilNombre">-</h3>
+            <p id="perfilEmail">-</p>
+            <span class="role-badge cliente">Cliente</span>
+          </div>
+        </div>
+
+        <div class="profile-details">
+          <h4><i class="fas fa-user-edit"></i> Información Personal</h4>
+          <div class="info-grid">
+            <div class="info-item">
+              <i class="fas fa-user"></i>
+              <div>
+                <strong>Nombre Completo</strong>
+                <p id="perfilNombreCompleto">-</p>
+              </div>
+            </div>
+            <div class="info-item">
+              <i class="fas fa-envelope"></i>
+              <div>
+                <strong>Email</strong>
+                <p id="perfilEmailInfo">-</p>
+              </div>
+            </div>
+            <div class="info-item">
+              <i class="fas fa-phone"></i>
+              <div>
+                <strong>Teléfono</strong>
+                <p id="perfilTelefonoInfo">-</p>
+              </div>
+            </div>
+            <div class="info-item">
+              <i class="fas fa-calendar"></i>
+              <div>
+                <strong>Miembro desde</strong>
+                <p id="perfilFechaRegistro">-</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-stats">
+            <h4><i class="fas fa-chart-bar"></i> Mis Estadísticas</h4>
+            <div class="stats-grid">
+              <div class="stat-item">
+                <i class="fas fa-calendar-check"></i>
+                <div>
+                  <strong id="perfilTotalCitas">0</strong>
+                  <p>Total de Citas</p>
+                </div>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-check-circle"></i>
+                <div>
+                  <strong id="perfilCitasCompletadas">0</strong>
+                  <p>Completadas</p>
+                </div>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-clock"></i>
+                <div>
+                  <strong id="perfilProximaCita">-</strong>
+                  <p>Próxima Cita</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Historial Reciente -->
-    <div class="card">
-      <div class="card-header">
-        <h3><i class="fas fa-history"></i> Historial de Citas</h3>
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Servicio</th>
-                <th>Empleada</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="historialTable">
-              <tr>
-                <td colspan="5" class="text-center">Cargando...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
   </div>
 </main>
+
+<!-- Modal de Avatar -->
+<div id="avatarModal" class="modal">
+  <div class="modal-content">
+    <span class="modal-close" onclick="closeAvatarModal()">&times;</span>
+    <div class="modal-header">
+      <i class="fas fa-user-circle"></i>
+      <h3>Selecciona tu Avatar</h3>
+    </div>
+    <div class="modal-body">
+      <div id="avatarGrid" class="avatar-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Imagen Completa -->
+<div id="imageModal" class="modal" onclick="closeImageModal()">
+  <div class="image-modal-content">
+    <button class="close-image-modal" onclick="closeImageModal()">
+      <i class="fas fa-times"></i>
+    </button>
+    <button class="image-modal-prev" onclick="event.stopPropagation(); prevImageModal()">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    <img id="modalImage" src="" alt="Imagen ampliada">
+    <div id="modalImageInfo" class="modal-image-info">
+      <h4 id="modalImageTitle"></h4>
+      <p id="modalImageDesc"></p>
+    </div>
+    <button class="image-modal-next" onclick="event.stopPropagation(); nextImageModal()">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+  </div>
+</div>
 
 <script src="assets/js/config.js"></script>
 <script src="assets/js/cliente-dashboard.js"></script>

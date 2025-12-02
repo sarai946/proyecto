@@ -1,11 +1,12 @@
 # main.py
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordRequestForm
 from db_connection import conectar
 import mysql.connector
 from datetime import timedelta
 from auth import (
-    UserLogin, UserRegister, Token,
+    UserLogin, UserRegister, Token, ReservaCreate,
     verify_password, get_password_hash, create_access_token,
     get_current_user, get_current_admin, TokenData,
     ACCESS_TOKEN_EXPIRE_MINUTES
@@ -15,7 +16,17 @@ from auth import (
 app = FastAPI(
     title="Yary Nails API",
     description="API para gestionar reservas, usuarios y servicios con autenticación",
-    version="3.0.0"
+    version="4.0.0",
+    openapi_tags=[
+        {"name": "Sistema", "description": "Información general del sistema"},
+        {"name": "Auth", "description": "Endpoints de autenticación y autorización"},
+        {"name": "Usuarios", "description": "Gestión de usuarios del sistema"},
+        {"name": "Empleados", "description": "Gestión de empleados y especialidades"},
+        {"name": "Servicios", "description": "Gestión de servicios ofrecidos"},
+        {"name": "Reservas", "description": "Gestión de reservas y citas"},
+        {"name": "Contacto", "description": "Mensajes de contacto del formulario"},
+        {"name": "Logs", "description": "Registro de acciones del sistema"},
+    ]
 )
 
 # Configurar CORS para permitir peticiones desde el frontend
@@ -48,16 +59,16 @@ def startup_event():
 
 
 # 🏠 Ruta raíz
-@app.get("/")
+@app.get("/", tags=["Sistema"])
 def root():
-    return {"message": "🚀 API Yary Nails en funcionamiento", "version": "3.0.0"}
+    return {"message": "🚀 API Yary Nails en funcionamiento", "version": "4.0.0"}
 
 
 # ========================================
 # 🔐 ENDPOINTS DE AUTENTICACIÓN
 # ========================================
 
-@app.post("/auth/register", response_model=Token)
+@app.post("/auth/register", response_model=Token, tags=["Auth"])
 def register(user: UserRegister):
     """Registrar nuevo usuario"""
     try:
@@ -74,14 +85,14 @@ def register(user: UserRegister):
         
         # Insertar usuario
         cursor.execute(
-            "INSERT INTO usuarios (nombre, email, password, telefono, rol) VALUES (%s, %s, %s, %s, %s);",
-            (user.nombre, user.email, hashed_password, user.telefono, user.rol)
+            "INSERT INTO usuarios (nombre, apellido, email, password, password_hash, telefono, rol) VALUES (%s, %s, %s, %s, %s, %s, %s);",
+            (user.nombre, user.apellido, user.email, hashed_password, hashed_password, user.telefono, user.rol)
         )
         conexion.commit()
         user_id = cursor.lastrowid
         
         # Obtener usuario creado
-        cursor.execute("SELECT id, nombre, email, telefono, rol FROM usuarios WHERE id = %s;", (user_id,))
+        cursor.execute("SELECT id, nombre, apellido, email, telefono, rol FROM usuarios WHERE id = %s;", (user_id,))
         usuario = cursor.fetchone()
         conexion.close()
         
@@ -101,45 +112,66 @@ def register(user: UserRegister):
         raise HTTPException(status_code=500, detail=f"Error al registrar usuario: {err}")
 
 
-@app.post("/auth/login", response_model=Token)
-def login(credentials: UserLogin):
-    """Iniciar sesión"""
+@app.post("/auth/login", response_model=Token, tags=["Auth"])
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    """Iniciar sesión con OAuth2PasswordRequestForm"""
     try:
         conexion = conectar()
         cursor = conexion.cursor(dictionary=True)
         
-        # Buscar usuario por email
-        cursor.execute("SELECT * FROM usuarios WHERE email = %s;", (credentials.email,))
+        # Buscar usuario por email (username contiene el email)
+        cursor.execute("SELECT * FROM usuarios WHERE email = %s;", (form_data.username,))
         usuario = cursor.fetchone()
-        conexion.close()
         
         if not usuario:
-            raise HTTPException(status_code=401, detail="Email o contraseña incorrectos")
+            conexion.close()
+            raise HTTPException(
+                status_code=401, 
+                detail="Email o contraseña incorrectos"
+            )
         
-        # Verificar contraseña
-        if not verify_password(credentials.password, usuario['password']):
-            raise HTTPException(status_code=401, detail="Email o contraseña incorrectos")
+        # Verificar contraseña con Argon2
+        if not verify_password(form_data.password, usuario['password']):
+            conexion.close()
+            raise HTTPException(
+                status_code=401, 
+                detail="Email o contraseña incorrectos"
+            )
         
-        # Crear token
+        conexion.close()
+        
+        # Crear token JWT
         access_token = create_access_token(
             data={"sub": usuario['email'], "rol": usuario['rol']},
             expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         )
         
         # Remover password antes de enviar
-        del usuario['password']
+        usuario_data = {
+            "id": usuario['id'],
+            "nombre": usuario['nombre'],
+            "apellido": usuario['apellido'],
+            "email": usuario['email'],
+            "telefono": usuario['telefono'],
+            "rol": usuario['rol'],
+            "fecha_registro": str(usuario.get('fecha_registro', ''))
+        }
         
         return {
             "access_token": access_token,
             "token_type": "bearer",
-            "user": usuario
+            "user": usuario_data
         }
         
+    except HTTPException:
+        raise
     except mysql.connector.Error as err:
+        raise HTTPException(status_code=500, detail=f"Error de base de datos: {err}")
+    except Exception as err:
         raise HTTPException(status_code=500, detail=f"Error al iniciar sesión: {err}")
 
 
-@app.post("/auth/logout")
+@app.post("/auth/logout", tags=["Auth"])
 def logout(current_user: TokenData = Depends(get_current_user)):
     """Cerrar sesión (agregar token a lista negra)"""
     # En producción, agregar el token a Redis con TTL
@@ -147,19 +179,23 @@ def logout(current_user: TokenData = Depends(get_current_user)):
     return {"message": "Sesión cerrada exitosamente"}
 
 
-@app.get("/auth/me")
+@app.get("/auth/me", tags=["Auth"])
 def get_me(current_user: TokenData = Depends(get_current_user)):
     """Obtener información del usuario actual"""
     try:
         conexion = conectar()
         cursor = conexion.cursor(dictionary=True)
         
-        cursor.execute("SELECT id, nombre, email, telefono, rol FROM usuarios WHERE email = %s;", (current_user.email,))
+        cursor.execute("SELECT id, nombre, apellido, email, telefono, rol, fecha_registro FROM usuarios WHERE email = %s;", (current_user.email,))
         usuario = cursor.fetchone()
         conexion.close()
         
         if not usuario:
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        
+        # Convertir fecha_registro a string si existe
+        if usuario.get('fecha_registro'):
+            usuario['fecha_registro'] = str(usuario['fecha_registro'])
         
         return usuario
         
@@ -168,7 +204,7 @@ def get_me(current_user: TokenData = Depends(get_current_user)):
 
 
 # 📦 1️⃣ GET - Obtener todos los usuarios (solo admin)
-@app.get("/usuarios")
+@app.get("/usuarios", tags=["Usuarios"])
 def obtener_usuarios(current_user: TokenData = Depends(get_current_admin)):
     try:
         conexion = conectar()
@@ -182,7 +218,7 @@ def obtener_usuarios(current_user: TokenData = Depends(get_current_admin)):
 
 
 # 📦 2️⃣ GET - Obtener un usuario por ID
-@app.get("/usuarios/{usuario_id}")
+@app.get("/usuarios/{usuario_id}", tags=["Usuarios"])
 def obtener_usuario(usuario_id: int):
     try:
         conexion = conectar()
@@ -198,7 +234,7 @@ def obtener_usuario(usuario_id: int):
 
 
 # ➕ 3️⃣ POST - Crear un nuevo usuario
-@app.post("/usuarios")
+@app.post("/usuarios", tags=["Usuarios"])
 def crear_usuario(nombre: str, correo: str):
     try:
         conexion = conectar()
@@ -215,7 +251,7 @@ def crear_usuario(nombre: str, correo: str):
 
 
 # ✏️ 4️⃣ PUT - Actualizar un usuario existente
-@app.put("/usuarios/{usuario_id}")
+@app.put("/usuarios/{usuario_id}", tags=["Usuarios"])
 def actualizar_usuario(usuario_id: int, nombre: str = None, correo: str = None):
     try:
         conexion = conectar()
@@ -254,7 +290,7 @@ def actualizar_usuario(usuario_id: int, nombre: str = None, correo: str = None):
 
 
 # ❌ 5️⃣ DELETE - Eliminar un usuario
-@app.delete("/usuarios/{usuario_id}")
+@app.delete("/usuarios/{usuario_id}", tags=["Usuarios"])
 def eliminar_usuario(usuario_id: int):
     try:
         conexion = conectar()
@@ -275,7 +311,7 @@ def eliminar_usuario(usuario_id: int):
 
 
 # 🧩 6️⃣ GET - Mostrar tablas disponibles
-@app.get("/tablas")
+@app.get("/tablas", tags=["Sistema"])
 def listar_tablas():
     try:
         conexion = conectar()
@@ -292,14 +328,35 @@ def listar_tablas():
 # 📅 ENDPOINTS PARA RESERVAS
 # ========================================
 
-# GET - Obtener todas las reservas
-@app.get("/reservas")
+# GET - Obtener todas las reservas con nombres de servicio y empleado
+@app.get("/reservas", tags=["Reservas"])
 def obtener_reservas():
     try:
         conexion = conectar()
         cursor = conexion.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM reservas ORDER BY fecha DESC, hora DESC;")
+        
+        # JOIN con servicios y empleados para obtener nombres
+        query = """
+        SELECT 
+            r.*,
+            s.nombre as servicio_nombre,
+            e.nombre as empleado_nombre,
+            u.nombre as usuario_nombre
+        FROM reservas r
+        LEFT JOIN servicios s ON r.servicio_id = s.id
+        LEFT JOIN empleados e ON r.empleado_id = e.id
+        LEFT JOIN usuarios u ON r.usuario_id = u.id
+        ORDER BY r.fecha DESC, r.hora DESC
+        """
+        
+        cursor.execute(query)
         resultados = cursor.fetchall()
+        
+        # Convertir fechas a string
+        for r in resultados:
+            if r.get('fecha'):
+                r['fecha'] = str(r['fecha'])
+        
         conexion.close()
         return {"reservas": resultados}
     except mysql.connector.Error as err:
@@ -323,14 +380,16 @@ def obtener_reserva(reserva_id: int):
 
 
 # POST - Crear una nueva reserva
-@app.post("/reservas")
-def crear_reserva(fecha: str, hora: str, cliente: str, empleado: str, telefono: str):
+@app.post("/reservas", tags=["Reservas"])
+def crear_reserva(reserva: ReservaCreate):
     try:
         conexion = conectar()
         cursor = conexion.cursor()
         cursor.execute(
-            "INSERT INTO reservas (fecha, hora, cliente, empleado, telefono) VALUES (%s, %s, %s, %s, %s);",
-            (fecha, hora, cliente, empleado, telefono)
+            """INSERT INTO reservas (usuario_id, servicio_id, empleado_id, fecha, hora, estado, notas) 
+               VALUES (%s, %s, %s, %s, %s, %s, %s);""",
+            (reserva.usuario_id, reserva.servicio_id, reserva.empleado_id, 
+             reserva.fecha, reserva.hora, reserva.estado, reserva.notas)
         )
         conexion.commit()
         reserva_id = cursor.lastrowid
@@ -341,9 +400,14 @@ def crear_reserva(fecha: str, hora: str, cliente: str, empleado: str, telefono: 
 
 
 # PUT - Actualizar una reserva
-@app.put("/reservas/{reserva_id}")
-def actualizar_reserva(reserva_id: int, fecha: str = None, hora: str = None, 
-                       cliente: str = None, empleado: str = None, telefono: str = None):
+@app.put("/reservas/{reserva_id}", tags=["Reservas"])
+def actualizar_reserva(
+    reserva_id: int,
+    fecha: str = None,
+    hora: str = None,
+    estado: str = None,
+    notas: str = None
+):
     try:
         conexion = conectar()
         cursor = conexion.cursor()
@@ -359,9 +423,8 @@ def actualizar_reserva(reserva_id: int, fecha: str = None, hora: str = None,
         values = []
         if fecha: updates.append("fecha = %s"); values.append(fecha)
         if hora: updates.append("hora = %s"); values.append(hora)
-        if cliente: updates.append("cliente = %s"); values.append(cliente)
-        if empleado: updates.append("empleado = %s"); values.append(empleado)
-        if telefono: updates.append("telefono = %s"); values.append(telefono)
+        if estado: updates.append("estado = %s"); values.append(estado)
+        if notas is not None: updates.append("notas = %s"); values.append(notas)
         
         if not updates:
             raise HTTPException(status_code=400, detail="Debe enviar al menos un campo para actualizar")
@@ -377,7 +440,7 @@ def actualizar_reserva(reserva_id: int, fecha: str = None, hora: str = None,
 
 
 # DELETE - Eliminar una reserva
-@app.delete("/reservas/{reserva_id}")
+@app.delete("/reservas/{reserva_id}", tags=["Reservas"])
 def eliminar_reserva(reserva_id: int):
     try:
         conexion = conectar()
@@ -394,4 +457,73 @@ def eliminar_reserva(reserva_id: int):
         return {"mensaje": f"🗑️ Reserva {reserva_id} eliminada correctamente"}
     except mysql.connector.Error as err:
         raise HTTPException(status_code=500, detail=f"Error al eliminar reserva: {err}")
+
+
+# ========================================
+# 💅 ENDPOINTS PARA SERVICIOS
+# ========================================
+
+# GET - Obtener todos los servicios
+@app.get("/servicios", tags=["Servicios"])
+def obtener_servicios():
+    try:
+        conexion = conectar()
+        cursor = conexion.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM servicios ORDER BY nombre;")
+        resultados = cursor.fetchall()
+        conexion.close()
+        return {"servicios": resultados}
+    except mysql.connector.Error as err:
+        raise HTTPException(status_code=500, detail=f"Error al consultar servicios: {err}")
+
+
+# GET - Obtener un servicio por ID
+@app.get("/servicios/{servicio_id}", tags=["Servicios"])
+def obtener_servicio(servicio_id: int):
+    try:
+        conexion = conectar()
+        cursor = conexion.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM servicios WHERE id = %s;", (servicio_id,))
+        servicio = cursor.fetchone()
+        conexion.close()
+        if not servicio:
+            raise HTTPException(status_code=404, detail="Servicio no encontrado")
+        return servicio
+    except mysql.connector.Error as err:
+        raise HTTPException(status_code=500, detail=f"Error al buscar servicio: {err}")
+
+
+# ========================================
+# 👥 ENDPOINTS PARA EMPLEADOS
+# ========================================
+
+# GET - Obtener todos los empleados
+@app.get("/empleados", tags=["Empleados"])
+def obtener_empleados():
+    try:
+        conexion = conectar()
+        cursor = conexion.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM empleados ORDER BY nombre;")
+        resultados = cursor.fetchall()
+        conexion.close()
+        return {"empleados": resultados}
+    except mysql.connector.Error as err:
+        raise HTTPException(status_code=500, detail=f"Error al consultar empleados: {err}")
+
+
+# GET - Obtener un empleado por ID
+@app.get("/empleados/{empleado_id}", tags=["Empleados"])
+def obtener_empleado(empleado_id: int):
+    try:
+        conexion = conectar()
+        cursor = conexion.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM empleados WHERE id = %s;", (empleado_id,))
+        empleado = cursor.fetchone()
+        conexion.close()
+        if not empleado:
+            raise HTTPException(status_code=404, detail="Empleado no encontrado")
+        return empleado
+    except mysql.connector.Error as err:
+        raise HTTPException(status_code=500, detail=f"Error al buscar empleado: {err}")
+
 

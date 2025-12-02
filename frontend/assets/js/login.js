@@ -55,19 +55,10 @@ document.addEventListener('DOMContentLoaded', function() {
         throw new Error(data.detail || 'Error al iniciar sesión');
       }
 
-      // Guardar token y usuario
+      // Guardar token y usuario (el backend ya devuelve el user en data.user)
       localStorage.setItem('auth_token', data.access_token);
       localStorage.setItem('token_type', data.token_type);
-      
-      // Obtener información del usuario
-      const userResponse = await fetch(`${API_CONFIG.baseURL}/auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${data.access_token}`
-        }
-      });
-
-      const userData = await userResponse.json();
-      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('user', JSON.stringify(data.user));
 
       // Si marcó "recordarme", guardar en localStorage por más tiempo
       if (remember) {
@@ -80,9 +71,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // Redirigir según el rol
       setTimeout(() => {
-        if (userData.rol === 'admin') {
+        if (data.user.rol === 'admin') {
           window.location.href = 'admin-dashboard.html';
-        } else if (userData.rol === 'empleado') {
+        } else if (data.user.rol === 'empleado') {
           window.location.href = 'empleado-dashboard.html';
         } else {
           window.location.href = 'cliente-dashboard.html';
