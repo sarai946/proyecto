@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Login - Yary Nails Studio</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 { color: #667eea; margin-bottom: 10px; }
+    .subtitle { color: #6b7280; margin-bottom: 30px; }
+    .test-section {
+      background: #f3f4f6;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .test-section h2 {
+      color: #374151;
+      font-size: 18px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .credential {
+      background: white;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .credential:hover {
+      transform: translateX(5px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+    .credential strong { color: #667eea; display: block; margin-bottom: 5px; }
+    .credential code {
+      background: #f9fafb;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #1f2937;
+    }
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      width: 100%;
+      margin-top: 10px;
+      transition: transform 0.2s;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:active { transform: translateY(0); }
+    #log {
+      background: #1f2937;
+      color: #10b981;
+      padding: 20px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 20px;
+      line-height: 1.6;
+    }
+    .error { color: #ef4444; }
+    .success { color: #10b981; }
+    .info { color: #3b82f6; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Test de Login</h1>
+    <p class="subtitle">Prueba el sistema de autenticación con diferentes cuentas</p>
+
+    <div class="test-section">
+      <h2>👤 Selecciona una Cuenta de Prueba</h2>
+      
+      <div class="credential" onclick="testLogin('admin@yarynails.com', 'admin123')">
+        <strong>👑 ADMINISTRADOR</strong>
+        <code>admin@yarynails.com / admin123</code>
+      </div>
+
+      <div class="credential" onclick="testLogin('empleado@yarynails.com', 'empleado123')">
+        <strong>👨‍💼 EMPLEADO</strong>
+        <code>empleado@yarynails.com / empleado123</code>
+      </div>
+
+      <div class="credential" onclick="testLogin('cliente@example.com', 'cliente123')">
+        <strong>💅 CLIENTE</strong>
+        <code>cliente@example.com / cliente123</code>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h2>🔧 Acciones Rápidas</h2>
+      <button class="btn" onclick="clearStorage()">🗑️ Limpiar LocalStorage</button>
+      <button class="btn" onclick="checkAuth()">🔍 Verificar Autenticación Actual</button>
+      <button class="btn" onclick="goToLogin()">🚪 Ir a Login Real</button>
+    </div>
+
+    <div id="log"></div>
+  </div>
+
+  <script>
+    const API_URL = 'https://proyecto-production-e6e2.up.railway.app';
+    const log = document.getElementById('log');
+
+    function addLog(message, type = 'info') {
+      const time = new Date().toLocaleTimeString();
+      const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+      log.innerHTML += `<div class="${className}">[${time}] ${message}</div>`;
+      log.scrollTop = log.scrollHeight;
+    }
+
+    async function testLogin(email, password) {
+      addLog(`🔄 Intentando login con: ${email}`, 'info');
+      
+      try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            username: email,
+            password: password
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.detail || 'Error al iniciar sesión');
+        }
+
+        // Guardar en localStorage
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('userId', data.user.id);
+        localStorage.setItem('userName', data.user.nombre);
+        localStorage.setItem('userRole', data.user.rol);
+
+        addLog(`✅ LOGIN EXITOSO!`, 'success');
+        addLog(`   - Token: ${data.access_token.substring(0, 20)}...`, 'success');
+        addLog(`   - Usuario: ${data.user.nombre}`, 'success');
+        addLog(`   - Rol: ${data.user.rol}`, 'success');
+        addLog(`   - ID: ${data.user.id}`, 'success');
+        
+        setTimeout(() => {
+          addLog(`🚀 Redirigiendo al dashboard...`, 'info');
+          
+          setTimeout(() => {
+            if (data.user.rol === 'admin') {
+              window.location.href = 'admin-dashboard.html';
+            } else if (data.user.rol === 'empleado') {
+              window.location.href = 'empleado-dashboard.html';
+            } else {
+              window.location.href = 'cliente-dashboard.html';
+            }
+          }, 1000);
+        }, 1000);
+
+      } catch (error) {
+        addLog(`❌ ERROR: ${error.message}`, 'error');
+        console.error('Error completo:', error);
+      }
+    }
+
+    function clearStorage() {
+      localStorage.clear();
+      addLog('🗑️ LocalStorage limpiado', 'info');
+      addLog('   - Ahora puedes intentar login de nuevo', 'info');
+    }
+
+    function checkAuth() {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+      const userName = localStorage.getItem('userName');
+      const userRole = localStorage.getItem('userRole');
+
+      if (token && userId) {
+        addLog('✅ Hay sesión activa:', 'success');
+        addLog(`   - Usuario: ${userName}`, 'success');
+        addLog(`   - Rol: ${userRole}`, 'success');
+        addLog(`   - ID: ${userId}`, 'success');
+        addLog(`   - Token: ${token.substring(0, 30)}...`, 'success');
+      } else {
+        addLog('❌ No hay sesión activa', 'error');
+        addLog('   - Debes hacer login primero', 'info');
+      }
+    }
+
+    function goToLogin() {
+      window.location.href = 'login.html';
+    }
+
+    // Al cargar, verificar si hay sesión
+    window.addEventListener('load', () => {
+      addLog('🚀 Sistema de Test iniciado', 'info');
+      addLog('   - Backend: ' + API_URL, 'info');
+      checkAuth();
+    });
+  </script>
+</body>
+</html>

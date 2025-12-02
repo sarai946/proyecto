@@ -252,22 +252,19 @@
 
     <!-- SECCIÓN: MI PERFIL -->
     <section id="perfil-section" class="content-section">
-      <div class="profile-container">
-        <div class="profile-card">
-          <div class="profile-header">
-            <img id="perfilAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" alt="Avatar" class="profile-avatar">
-            <button class="btn btn-sm btn-outline" onclick="cambiarAvatar()">
-              <i class="fas fa-camera"></i> Cambiar Avatar
-            </button>
-          </div>
-          <div class="profile-info">
-            <h3 id="perfilNombre">-</h3>
-            <p id="perfilEmail">-</p>
-            <span class="role-badge cliente">Cliente</span>
-          </div>
+      <div class="perfil-header">
+        <div class="perfil-avatar-wrapper">
+          <img id="perfilAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" alt="Avatar" class="perfil-avatar">
+          <button class="change-avatar-btn" onclick="cambiarAvatar()">
+            <i class="fas fa-camera"></i>
+          </button>
         </div>
+        <h3 id="perfilNombre">-</h3>
+        <p id="perfilEmail">-</p>
+        <span class="perfil-badge">CLIENTE</span>
+      </div>
 
-        <div class="profile-details">
+      <div class="profile-details">
           <h4><i class="fas fa-user-edit"></i> Información Personal</h4>
           <div class="info-grid">
             <div class="info-item">
@@ -336,10 +333,9 @@
 <!-- Modal de Avatar -->
 <div id="avatarModal" class="modal">
   <div class="modal-content">
-    <span class="modal-close" onclick="closeAvatarModal()">&times;</span>
     <div class="modal-header">
-      <i class="fas fa-user-circle"></i>
-      <h3>Selecciona tu Avatar</h3>
+      <h4><i class="fas fa-user-circle"></i> Selecciona tu Avatar</h4>
+      <button class="close-modal" onclick="closeAvatarModal()">&times;</button>
     </div>
     <div class="modal-body">
       <div id="avatarGrid" class="avatar-grid"></div>

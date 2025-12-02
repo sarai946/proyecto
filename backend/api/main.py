@@ -343,9 +343,9 @@ def obtener_reservas():
             e.nombre as empleado_nombre,
             u.nombre as usuario_nombre
         FROM reservas r
-        LEFT JOIN servicios s ON r.servicio_id = s.id
-        LEFT JOIN empleados e ON r.empleado_id = e.id
-        LEFT JOIN usuarios u ON r.usuario_id = u.id
+        LEFT JOIN servicios s ON r.id_servicio = s.id
+        LEFT JOIN empleados e ON r.id_empleado = e.id
+        LEFT JOIN usuarios u ON r.id_usuario = u.id
         ORDER BY r.fecha DESC, r.hora DESC
         """
         
@@ -386,9 +386,9 @@ def crear_reserva(reserva: ReservaCreate):
         conexion = conectar()
         cursor = conexion.cursor()
         cursor.execute(
-            """INSERT INTO reservas (usuario_id, servicio_id, empleado_id, fecha, hora, estado, notas) 
+            """INSERT INTO reservas (id_usuario, id_servicio, id_empleado, fecha, hora, estado, notas) 
                VALUES (%s, %s, %s, %s, %s, %s, %s);""",
-            (reserva.usuario_id, reserva.servicio_id, reserva.empleado_id, 
+            (reserva.id_usuario, reserva.id_servicio, reserva.id_empleado, 
              reserva.fecha, reserva.hora, reserva.estado, reserva.notas)
         )
         conexion.commit()

@@ -4,9 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Administrador - Yary Nails Studio</title>
-  <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="stylesheet" href="assets/css/dashboard.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/admin-dashboard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body class="dashboard-body">
@@ -14,43 +13,39 @@
 <!-- Sidebar -->
 <aside class="sidebar">
   <div class="sidebar-header">
-    <h2>Yary Nails</h2>
-    <span class="role-badge admin">Administrador</span>
+    <h2>💅 Yary Nails</h2>
+    <span class="role-badge admin">ADMINISTRADOR</span>
   </div>
 
   <nav class="sidebar-nav">
-    <a href="#dashboard" class="nav-item active">
+    <a href="#" class="nav-item active" data-section="dashboard">
       <i class="fas fa-tachometer-alt"></i>
       <span>Dashboard</span>
     </a>
-    <a href="#usuarios" class="nav-item">
+    <a href="#" class="nav-item" data-section="usuarios">
       <i class="fas fa-users"></i>
       <span>Usuarios</span>
     </a>
-    <a href="#reservas" class="nav-item">
+    <a href="#" class="nav-item" data-section="reservas">
       <i class="fas fa-calendar-check"></i>
       <span>Reservas</span>
     </a>
-    <a href="#servicios" class="nav-item">
+    <a href="#" class="nav-item" data-section="servicios">
       <i class="fas fa-hand-sparkles"></i>
       <span>Servicios</span>
     </a>
-    <a href="#empleados" class="nav-item">
+    <a href="#" class="nav-item" data-section="empleados">
       <i class="fas fa-user-tie"></i>
       <span>Empleados</span>
     </a>
-    <a href="#reportes" class="nav-item">
+    <a href="#" class="nav-item" data-section="reportes">
       <i class="fas fa-chart-bar"></i>
       <span>Reportes</span>
-    </a>
-    <a href="#configuracion" class="nav-item">
-      <i class="fas fa-cog"></i>
-      <span>Configuración</span>
     </a>
   </nav>
 
   <div class="sidebar-footer">
-    <button class="btn-logout" onclick="logout()">
+    <button class="btn-logout" onclick="cerrarSesion()">
       <i class="fas fa-sign-out-alt"></i>
       <span>Cerrar Sesión</span>
     </button>
@@ -65,19 +60,19 @@
       <button class="btn-menu" id="menuToggle">
         <i class="fas fa-bars"></i>
       </button>
-      <h1>Panel de Administración</h1>
+      <h1 id="pageTitle">Panel de Administración</h1>
     </div>
     <div class="topbar-right">
       <div class="search-box">
         <i class="fas fa-search"></i>
-        <input type="text" placeholder="Buscar...">
+        <input type="text" placeholder="Buscar..." id="searchInput">
       </div>
       <button class="btn-notification">
         <i class="fas fa-bell"></i>
-        <span class="badge">3</span>
+        <span class="badge" id="notificationCount">0</span>
       </button>
       <div class="user-menu">
-        <img src="assets/img/default-avatar.png" alt="Admin" class="avatar">
+        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=admin" alt="Admin" class="avatar">
         <span id="userName">Admin</span>
       </div>
     </div>
@@ -85,140 +80,252 @@
 
   <!-- Dashboard Content -->
   <div class="dashboard-content">
-    <!-- Stats Cards -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon blue">
-          <i class="fas fa-users"></i>
+    
+    <!-- SECCIÓN: DASHBOARD -->
+    <section id="dashboard-section" class="content-section">
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stat-info">
+            <h3 id="totalUsuarios">0</h3>
+            <p>Total Usuarios</p>
+            <span class="stat-change positive" id="usuariosChange">Cargando...</span>
+          </div>
         </div>
-        <div class="stat-info">
-          <h3 id="totalUsuarios">0</h3>
-          <p>Total Usuarios</p>
-          <span class="stat-change positive">+12% este mes</span>
+
+        <div class="stat-card">
+          <div class="stat-icon purple">
+            <i class="fas fa-calendar-check"></i>
+          </div>
+          <div class="stat-info">
+            <h3 id="totalReservas">0</h3>
+            <p>Reservas Activas</p>
+            <span class="stat-change positive" id="reservasChange">Cargando...</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green">
+            <i class="fas fa-dollar-sign"></i>
+          </div>
+          <div class="stat-info">
+            <h3 id="totalIngresos">$0</h3>
+            <p>Ingresos del Mes</p>
+            <span class="stat-change positive" id="ingresosChange">Calculando...</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon orange">
+            <i class="fas fa-hand-sparkles"></i>
+          </div>
+          <div class="stat-info">
+            <h3 id="totalServicios">0</h3>
+            <p>Servicios Ofrecidos</p>
+            <span class="stat-change neutral">Sin cambios</span>
+          </div>
         </div>
       </div>
 
-      <div class="stat-card">
-        <div class="stat-icon purple">
-          <i class="fas fa-calendar-check"></i>
-        </div>
-        <div class="stat-info">
-          <h3 id="totalReservas">0</h3>
-          <p>Reservas Activas</p>
-          <span class="stat-change positive">+8% este mes</span>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon green">
-          <i class="fas fa-dollar-sign"></i>
-        </div>
-        <div class="stat-info">
-          <h3>$2,450</h3>
-          <p>Ingresos del Mes</p>
-          <span class="stat-change positive">+15% este mes</span>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon orange">
-          <i class="fas fa-hand-sparkles"></i>
-        </div>
-        <div class="stat-info">
-          <h3 id="totalServicios">0</h3>
-          <p>Servicios Ofrecidos</p>
-          <span class="stat-change neutral">Sin cambios</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Charts Row -->
-    <div class="charts-row">
+      <!-- Reservas Recientes -->
       <div class="card">
         <div class="card-header">
-          <h3>Reservas por Mes</h3>
-          <select class="filter-select">
-            <option>Últimos 6 meses</option>
-            <option>Último año</option>
+          <h3><i class="fas fa-calendar"></i> Reservas Recientes</h3>
+          <button class="btn btn-primary btn-sm" onclick="showSection('reservas')">
+            <i class="fas fa-eye"></i> Ver Todas
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Cliente</th>
+                  <th>Servicio</th>
+                  <th>Empleado</th>
+                  <th>Fecha</th>
+                  <th>Hora</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="reservasRecentesTable">
+                <tr>
+                  <td colspan="8" class="text-center">Cargando...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: USUARIOS -->
+    <section id="usuarios-section" class="content-section" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-users"></i> Gestión de Usuarios</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Teléfono</th>
+                  <th>Rol</th>
+                  <th>Fecha Registro</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="usuariosTable">
+                <tr>
+                  <td colspan="7" class="text-center">Cargando...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: RESERVAS -->
+    <section id="reservas-section" class="content-section" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-calendar-check"></i> Todas las Reservas</h3>
+          <select class="filter-select" id="filtroEstado" onchange="filtrarReservas()">
+            <option value="todas">Todas</option>
+            <option value="pendiente">Pendientes</option>
+            <option value="confirmada">Confirmadas</option>
+            <option value="completada">Completadas</option>
+            <option value="cancelada">Canceladas</option>
           </select>
         </div>
         <div class="card-body">
-          <canvas id="reservasChart"></canvas>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Cliente</th>
+                  <th>Servicio</th>
+                  <th>Empleado</th>
+                  <th>Fecha</th>
+                  <th>Hora</th>
+                  <th>Estado</th>
+                  <th>Notas</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="todasReservasTable">
+                <tr>
+                  <td colspan="9" class="text-center">Cargando...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
+    </section>
 
+    <!-- SECCIÓN: SERVICIOS -->
+    <section id="servicios-section" class="content-section" style="display: none;">
       <div class="card">
         <div class="card-header">
-          <h3>Servicios Más Populares</h3>
+          <h3><i class="fas fa-hand-sparkles"></i> Gestión de Servicios</h3>
         </div>
         <div class="card-body">
-          <canvas id="serviciosChart"></canvas>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Descripción</th>
+                  <th>Duración</th>
+                  <th>Precio</th>
+                </tr>
+              </thead>
+              <tbody id="serviciosTable">
+                <tr>
+                  <td colspan="5" class="text-center">Cargando...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Tables -->
-    <div class="card">
-      <div class="card-header">
-        <h3>Reservas Recientes</h3>
-        <button class="btn btn-primary btn-sm">
-          <i class="fas fa-plus"></i> Nueva Reserva
-        </button>
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Cliente</th>
-                <th>Servicio</th>
-                <th>Fecha</th>
-                <th>Hora</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="reservasTable">
-              <tr>
-                <td colspan="7" class="text-center">Cargando...</td>
-              </tr>
-            </tbody>
-          </table>
+    <!-- SECCIÓN: EMPLEADOS -->
+    <section id="empleados-section" class="content-section" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-user-tie"></i> Gestión de Empleados</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Teléfono</th>
+                  <th>Especialidad</th>
+                </tr>
+              </thead>
+              <tbody id="empleadosTable">
+                <tr>
+                  <td colspan="5" class="text-center">Cargando...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <div class="card">
-      <div class="card-header">
-        <h3>Gestión de Usuarios</h3>
-        <button class="btn btn-primary btn-sm" onclick="showAddUserModal()">
-          <i class="fas fa-user-plus"></i> Nuevo Usuario
-        </button>
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Email</th>
-                <th>Teléfono</th>
-                <th>Rol</th>
-                <th>Fecha Registro</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="usuariosTable">
-              <tr>
-                <td colspan="7" class="text-center">Cargando...</td>
-              </tr>
-            </tbody>
-          </table>
+    <!-- SECCIÓN: REPORTES -->
+    <section id="reportes-section" class="content-section" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-chart-bar"></i> Reportes y Estadísticas</h3>
+        </div>
+        <div class="card-body">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon blue">
+                <i class="fas fa-chart-line"></i>
+              </div>
+              <div class="stat-info">
+                <h3 id="reporteReservas">0</h3>
+                <p>Reservas Completadas</p>
+                <span class="stat-change positive">Este mes</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon green">
+                <i class="fas fa-money-bill-wave"></i>
+              </div>
+              <div class="stat-info">
+                <h3 id="reporteIngresos">$0</h3>
+                <p>Ingresos Totales</p>
+                <span class="stat-change positive">Este mes</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
+
   </div>
 </main>
 

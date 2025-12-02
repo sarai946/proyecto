@@ -3,14 +3,9 @@
 // ==========================
 
 // URL del backend desplegado en Railway
-// Cambia esto cuando despliegues el backend en Railway
 const API_CONFIG = {
-  // Para desarrollo local (cuando el backend corre en tu computadora)
-  // baseURL: 'http://localhost:8000',
-  
-  // Para producción (cuando despliegues el backend en Railway)
-  // Reemplaza con tu URL de Railway cuando la tengas
-  baseURL: 'http://localhost:8000',  // Cambiar por la URL de Railway más adelante
+  // Backend LOCAL (Railway está caído)
+  baseURL: 'http://localhost:8000',
   
   endpoints: {
     usuarios: '/usuarios',
@@ -25,8 +20,8 @@ const API_CONFIG = {
 async function apiRequest(endpoint, options = {}) {
   const url = `${API_CONFIG.baseURL}${endpoint}`;
   
-  // Obtener token de autenticación
-  const token = localStorage.getItem('auth_token');
+  // Obtener token de autenticación (unificado con login)
+  const token = localStorage.getItem('token');
   
   const defaultOptions = {
     headers: {
@@ -71,20 +66,23 @@ window.apiRequest = apiRequest;
 
 // Verificar si el usuario está autenticado
 function isAuthenticated() {
-  const token = localStorage.getItem('auth_token');
-  const user = localStorage.getItem('user');
-  return token && user;
+  const token = localStorage.getItem('token');
+  const userId = localStorage.getItem('userId');
+  return token && userId;
 }
 
 // Obtener usuario actual
 function getCurrentUser() {
-  const userStr = localStorage.getItem('user');
-  if (userStr) {
-    try {
-      return JSON.parse(userStr);
-    } catch (e) {
-      return null;
-    }
+  const userId = localStorage.getItem('userId');
+  const userName = localStorage.getItem('userName');
+  const userRole = localStorage.getItem('userRole');
+  
+  if (userId && userRole) {
+    return {
+      id: parseInt(userId),
+      nombre: userName || 'Usuario',
+      rol: userRole
+    };
   }
   return null;
 }

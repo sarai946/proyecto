@@ -40,9 +40,9 @@ class UserRegister(BaseModel):
     rol: str = "cliente"  # Por defecto es cliente
 
 class ReservaCreate(BaseModel):
-    usuario_id: int
-    servicio_id: int
-    empleado_id: int
+    id_usuario: int
+    id_servicio: int
+    id_empleado: int
     fecha: str
     hora: str
     estado: str = "pendiente"

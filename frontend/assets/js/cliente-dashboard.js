@@ -73,6 +73,30 @@ document.addEventListener('DOMContentLoaded', async function() {
   await loadInitialData();
 });
 
+// ========================================
+// CERRAR SESIÓN
+// ========================================
+
+function logout() {
+  console.log('🚪 Cerrando sesión...');
+  
+  // Limpiar todos los datos de autenticación
+  localStorage.removeItem('token');
+  localStorage.removeItem('userId');
+  localStorage.removeItem('userName');
+  localStorage.removeItem('userRole');
+  localStorage.removeItem('token_expiry');
+  localStorage.removeItem('auth_token');
+  localStorage.removeItem('token_type');
+  localStorage.removeItem('user');
+  
+  // Redirigir inmediatamente
+  window.location.replace('login.html');
+}
+
+// Exportar función global
+window.logout = logout;
+
 // Actualizar avatares
 function updateAvatarImages(seed) {
   const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
@@ -142,7 +166,7 @@ async function loadReservas() {
     const user = getCurrentUser();
     
     // Filtrar solo las reservas del usuario actual
-    todasReservas = (response.reservas || []).filter(r => r.usuario_id === user.id);
+    todasReservas = (response.reservas || []).filter(r => r.id_usuario === user.id);
     
     renderReservas();
     renderProximasCitas();
@@ -379,7 +403,23 @@ function updateStats() {
   
   document.getElementById('statsReservasActivas').textContent = activas;
   document.getElementById('statsReservasCompletadas').textContent = completadas;
-  document.getElementById('notificationCount').textContent = activas;
+  
+  // Actualizar badge de notificaciones con animación
+  const badge = document.getElementById('notificationCount');
+  if (badge) {
+    const oldValue = parseInt(badge.textContent) || 0;
+    badge.textContent = activas;
+    
+    // Animar si el valor cambió
+    if (oldValue !== activas) {
+      badge.style.animation = 'none';
+      setTimeout(() => {
+        badge.style.animation = 'pulse 0.6s ease';
+      }, 10);
+    }
+  }
+  
+  console.log('📊 Estadísticas actualizadas:', { activas, completadas });
 }
 
 // Render próximas citas
@@ -505,6 +545,19 @@ function renderServiciosCatalog() {
   `).join('');
 }
 
+// Agendar con servicio preseleccionado
+function agendarConServicio(servicioId) {
+  // Cambiar a la sección de agendar
+  showSection('agendar');
+  
+  // Preseleccionar el servicio
+  const selectServicio = document.getElementById('servicioSelect');
+  if (selectServicio) {
+    selectServicio.value = servicioId;
+    selectServicio.focus();
+  }
+}
+
 // Filtrar reservas
 function filterReservas(filtro) {
   currentFilter = filtro;
@@ -603,9 +656,9 @@ async function crearReserva() {
   }
   
   const reservaData = {
-    usuario_id: user.id,
-    servicio_id: parseInt(servicio_id),
-    empleado_id: parseInt(empleado_id),
+    id_usuario: user.id,
+    id_servicio: parseInt(servicio_id),
+    id_empleado: parseInt(empleado_id),
     fecha,
     hora,
     estado: 'pendiente',
@@ -621,12 +674,18 @@ async function crearReserva() {
     });
     
     console.log('✅ Respuesta del servidor:', response);
-    showNotification('¡Cita agendada exitosamente!', 'success');
+    showNotification('¡Cita agendada exitosamente! 🎉', 'success');
     document.getElementById('agendarForm').reset();
     
     // Recargar datos
     await loadReservas();
     updateStats();
+    loadPerfil(); // Actualizar perfil con las nuevas estadísticas
+    
+    // Pequeño delay para mostrar la actualización
+    setTimeout(() => {
+      console.log('✨ Perfil y estadísticas actualizados');
+    }, 300);
     
     // Mostrar sección de reservas
     showSection('mis-reservas');
@@ -657,6 +716,7 @@ async function cancelarReserva(reservaId) {
     showNotification('Cita cancelada correctamente', 'success');
     await loadReservas();
     updateStats();
+    loadPerfil(); // Actualizar perfil después de cancelar
   } catch (error) {
     console.error('Error cancelando reserva:', error);
     showNotification('Error al cancelar la cita', 'error');
@@ -676,20 +736,36 @@ function loadPerfil() {
   const fechaRegistro = new Date(user.fecha_registro || Date.now());
   document.getElementById('perfilFechaRegistro').textContent = fechaRegistro.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
   
-  // Estadísticas del perfil
+  // Estadísticas del perfil (actualizado con todasReservas más reciente)
   const total = todasReservas.length;
   const completadas = todasReservas.filter(r => r.estado === 'completada').length;
-  const proxima = todasReservas
-    .filter(r => r.estado === 'pendiente' || r.estado === 'confirmada')
-    .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))[0];
+  const pendientes = todasReservas.filter(r => r.estado === 'pendiente' || r.estado === 'confirmada');
+  const proxima = pendientes.sort((a, b) => new Date(a.fecha) - new Date(b.fecha))[0];
+  
+  console.log('📊 Actualizando estadísticas del perfil:', { total, completadas, pendientes: pendientes.length });
+  
+  // Agregar animación de actualización
+  const statsElements = [
+    document.getElementById('perfilTotalCitas'),
+    document.getElementById('perfilCitasCompletadas'),
+    document.getElementById('perfilProximaCita')
+  ];
+  
+  statsElements.forEach(el => {
+    if (el) {
+      el.classList.add('updating');
+      setTimeout(() => el.classList.remove('updating'), 600);
+    }
+  });
   
   document.getElementById('perfilTotalCitas').textContent = total;
   document.getElementById('perfilCitasCompletadas').textContent = completadas;
   
   if (proxima) {
     const fecha = new Date(proxima.fecha);
+    const opciones = { day: 'numeric', month: 'short', year: 'numeric' };
     document.getElementById('perfilProximaCita').textContent = 
-      `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`;
+      fecha.toLocaleDateString('es-ES', opciones);
   } else {
     document.getElementById('perfilProximaCita').textContent = 'Sin citas';
   }
@@ -730,14 +806,6 @@ function closeAvatarModal() {
 // Toggle sidebar
 function toggleSidebar() {
   document.querySelector('.sidebar').classList.toggle('collapsed');
-}
-
-// Cerrar sesión
-function logout() {
-  localStorage.removeItem('auth_token');
-  localStorage.removeItem('token_type');
-  localStorage.removeItem('user');
-  window.location.href = 'login.html';
 }
 
 // Notificaciones

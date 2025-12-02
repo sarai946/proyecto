@@ -3,19 +3,35 @@
 document.addEventListener('DOMContentLoaded', function() {
   const loginForm = document.getElementById('loginForm');
   
+  // Limpiar localStorage si hay datos corruptos o viejos
+  const token = localStorage.getItem('token');
+  const userId = localStorage.getItem('userId');
+  
+  // Si hay token pero no userId, limpiar todo (datos inconsistentes)
+  if (token && !userId) {
+    console.log('⚠️ Limpiando localStorage (datos inconsistentes)');
+    localStorage.clear();
+  }
+  
   // Verificar si ya hay sesión activa
   if (typeof isAuthenticated !== 'undefined' && isAuthenticated()) {
     const user = getCurrentUser();
+    console.log('✅ Sesión activa detectada:', user);
     // Redirigir según el rol
-    if (user.rol === 'admin') {
+    if (user && user.rol === 'admin') {
       window.location.href = 'admin-dashboard.html';
-    } else if (user.rol === 'empleado') {
+    } else if (user && user.rol === 'empleado') {
       window.location.href = 'empleado-dashboard.html';
-    } else {
+    } else if (user && user.rol) {
       window.location.href = 'cliente-dashboard.html';
+    } else {
+      // Si no hay rol válido, limpiar
+      localStorage.clear();
     }
     return;
   }
+  
+  console.log('ℹ️ No hay sesión activa, mostrando formulario de login');
 
   loginForm.addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -37,8 +53,10 @@ document.addEventListener('DOMContentLoaded', function() {
     submitBtn.disabled = true;
 
     try {
-      // Hacer petición al backend
-      const response = await fetch(`${API_CONFIG.baseURL}/auth/login`, {
+      // Hacer petición al backend (LOCAL)
+      console.log('🔄 Intentando login con:', email);
+      
+      const response = await fetch('http://localhost:8000/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -49,16 +67,26 @@ document.addEventListener('DOMContentLoaded', function() {
         })
       });
 
+      console.log('📡 Respuesta recibida:', response.status);
+
       const data = await response.json();
+      console.log('📦 Data:', data);
 
       if (!response.ok) {
-        throw new Error(data.detail || 'Error al iniciar sesión');
+        throw new Error(data.detail || 'Email o contraseña incorrectos');
       }
 
-      // Guardar token y usuario (el backend ya devuelve el user en data.user)
-      localStorage.setItem('auth_token', data.access_token);
-      localStorage.setItem('token_type', data.token_type);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // Guardar token y datos de usuario (nombres unificados con dashboards)
+      localStorage.setItem('token', data.access_token);
+      localStorage.setItem('userId', data.user.id);
+      localStorage.setItem('userName', data.user.nombre);
+      localStorage.setItem('userRole', data.user.rol);
+      
+      console.log('✅ Login exitoso, datos guardados:', {
+        userId: data.user.id,
+        userName: data.user.nombre,
+        userRole: data.user.rol
+      });
 
       // Si marcó "recordarme", guardar en localStorage por más tiempo
       if (remember) {
@@ -81,8 +109,20 @@ document.addEventListener('DOMContentLoaded', function() {
       }, 1500);
 
     } catch (error) {
-      console.error('Error:', error);
-      showError(error.message || 'Error al iniciar sesión. Verifica tus credenciales.');
+      console.error('❌ Error completo:', error);
+      console.error('❌ Mensaje:', error.message);
+      
+      let errorMsg = 'Error al conectar con el servidor. ';
+      
+      if (error.message.includes('Failed to fetch')) {
+        errorMsg = '❌ No se puede conectar al servidor. Verifica que el backend esté activo en Railway.';
+      } else if (error.message.includes('incorrectos')) {
+        errorMsg = '❌ Email o contraseña incorrectos. Verifica tus credenciales.';
+      } else {
+        errorMsg = error.message;
+      }
+      
+      showError(errorMsg);
       submitBtn.innerHTML = originalText;
       submitBtn.disabled = false;
     }

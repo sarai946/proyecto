@@ -1,103 +1,263 @@
-// Admin Dashboard JavaScript
+// ========================================
+// CONFIGURACIÓN Y ESTADO
+// ========================================
 
-document.addEventListener('DOMContentLoaded', async function() {
-  // Verificar autenticación y rol
-  if (!isAuthenticated()) {
+const API_URL = 'http://localhost:8000';
+let allReservas = [];
+let allUsuarios = [];
+let allServicios = [];
+let allEmpleados = [];
+
+// ========================================
+// VERIFICACIÓN DE AUTENTICACIÓN
+// ========================================
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const token = localStorage.getItem('token');
+  const userRole = localStorage.getItem('userRole');
+
+  if (!token || userRole !== 'admin') {
     window.location.href = 'login.html';
     return;
   }
 
-  const user = getCurrentUser();
-  
-  if (user.rol !== 'admin') {
-    // Redirigir según el rol
-    if (user.rol === 'empleado') {
-      window.location.href = 'empleado-dashboard.html';
-    } else {
-      window.location.href = 'cliente-dashboard.html';
-    }
-    return;
-  }
+  // Cargar nombre del admin
+  const nombreUsuario = localStorage.getItem('userName') || 'Administrador';
+  document.getElementById('userName').textContent = nombreUsuario;
 
-  // Actualizar nombre del usuario
-  document.getElementById('userName').textContent = user.nombre;
-
-  // Cargar datos del dashboard
-  await loadDashboardData();
-
-  // Event listeners
-  document.getElementById('menuToggle')?.addEventListener('click', toggleSidebar);
+  // Configurar navegación
   setupNavigation();
+
+  // Cargar datos iniciales
+  await loadAllData();
 });
 
-async function loadDashboardData() {
-  try {
-    // Cargar usuarios
-    const usuarios = await apiRequest('/usuarios');
-    document.getElementById('totalUsuarios').textContent = usuarios.length;
-    renderUsuariosTable(usuarios);
+// ========================================
+// CERRAR SESIÓN
+// ========================================
 
-    // Cargar reservas
-    const reservas = await apiRequest('/reservas');
-    document.getElementById('totalReservas').textContent = reservas.length;
-    renderReservasTable(reservas);
+function cerrarSesion() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('userId');
+  localStorage.removeItem('userRole');
+  localStorage.removeItem('userName');
+  window.location.href = 'login.html';
+}
 
-    // Cargar servicios
-    const servicios = await apiRequest('/servicios');
-    document.getElementById('totalServicios').textContent = servicios.length;
+// ========================================
+// NAVEGACIÓN ENTRE SECCIONES
+// ========================================
 
-  } catch (error) {
-    console.error('Error cargando datos:', error);
-    showNotification('Error al cargar los datos del dashboard', 'error');
+function setupNavigation() {
+  const navItems = document.querySelectorAll('.nav-item');
+  const menuToggle = document.getElementById('menuToggle');
+  const sidebar = document.querySelector('.sidebar');
+
+  navItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      const section = item.getAttribute('data-section');
+      
+      // Actualizar navegación activa
+      navItems.forEach(nav => nav.classList.remove('active'));
+      item.classList.add('active');
+      
+      // Mostrar sección
+      showSection(section);
+      
+      // Cerrar sidebar en móvil
+      if (window.innerWidth < 768) {
+        sidebar.classList.remove('active');
+      }
+    });
+  });
+
+  // Toggle sidebar en móvil
+  menuToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('active');
+  });
+}
+
+function showSection(sectionName) {
+  // Ocultar todas las secciones
+  const sections = document.querySelectorAll('.content-section');
+  sections.forEach(section => section.style.display = 'none');
+  
+  // Mostrar sección seleccionada
+  const targetSection = document.getElementById(`${sectionName}-section`);
+  if (targetSection) {
+    targetSection.style.display = 'block';
+  }
+  
+  // Actualizar título
+  const titles = {
+    'dashboard': 'Panel de Administración',
+    'usuarios': 'Gestión de Usuarios',
+    'reservas': 'Gestión de Reservas',
+    'servicios': 'Gestión de Servicios',
+    'empleados': 'Gestión de Empleados',
+    'reportes': 'Reportes y Estadísticas'
+  };
+  document.getElementById('pageTitle').textContent = titles[sectionName] || 'Dashboard';
+  
+  // Cargar datos específicos de la sección
+  switch(sectionName) {
+    case 'dashboard':
+      loadDashboardData();
+      break;
+    case 'usuarios':
+      renderUsuariosTable();
+      break;
+    case 'reservas':
+      renderTodasReservasTable();
+      break;
+    case 'servicios':
+      renderServiciosTable();
+      break;
+    case 'empleados':
+      renderEmpleadosTable();
+      break;
+    case 'reportes':
+      loadReportesData();
+      break;
   }
 }
 
-function renderUsuariosTable(usuarios) {
+// ========================================
+// CARGA DE DATOS
+// ========================================
+
+async function loadAllData() {
+  const token = localStorage.getItem('token');
+  
+  try {
+    // Cargar todos los datos en paralelo
+    const [reservasRes, usuariosRes, serviciosRes, empleadosRes] = await Promise.all([
+      fetch(`${API_URL}/reservas`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }),
+      fetch(`${API_URL}/usuarios`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }),
+      fetch(`${API_URL}/servicios`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }),
+      fetch(`${API_URL}/empleados`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+    ]);
+
+    allReservas = await reservasRes.json();
+    allUsuarios = await usuariosRes.json();
+    allServicios = await serviciosRes.json();
+    allEmpleados = await empleadosRes.json();
+
+    // Cargar dashboard por defecto
+    loadDashboardData();
+    
+  } catch (error) {
+    console.error('Error cargando datos:', error);
+    showToast('Error al cargar datos del sistema', 'error');
+  }
+}
+
+// ========================================
+// DASHBOARD PRINCIPAL
+// ========================================
+
+function loadDashboardData() {
+  // Calcular estadísticas
+  const reservasActivas = allReservas.filter(r => 
+    r.estado === 'confirmada' || r.estado === 'pendiente'
+  ).length;
+  
+  const reservasCompletadas = allReservas.filter(r => r.estado === 'completada');
+  const ingresosMes = reservasCompletadas.reduce((total, r) => {
+    const servicio = allServicios.find(s => s.id === r.id_servicio);
+    return total + (servicio ? servicio.precio : 0);
+  }, 0);
+
+  // Actualizar stats cards
+  updateStatCard('totalUsuarios', allUsuarios.length, '+' + allUsuarios.length);
+  updateStatCard('totalReservas', reservasActivas, 'Activas');
+  updateStatCard('totalIngresos', `$${ingresosMes.toLocaleString()}`, `${reservasCompletadas.length} completadas`);
+  updateStatCard('totalServicios', allServicios.length, 'Disponibles');
+
+  // Renderizar reservas recientes (últimas 10)
+  const reservasRecientes = [...allReservas]
+    .sort((a, b) => new Date(b.creado_en) - new Date(a.creado_en))
+    .slice(0, 10);
+  
+  renderReservasRecientes(reservasRecientes);
+}
+
+function updateStatCard(elementId, value, changeText) {
+  const element = document.getElementById(elementId);
+  if (element) {
+    element.textContent = value;
+    
+    // Actualizar texto de cambio si existe
+    const changeElement = document.getElementById(elementId + 'Change');
+    if (changeElement) {
+      changeElement.textContent = changeText;
+    }
+  }
+}
+
+// ========================================
+// RENDERIZADO DE TABLAS
+// ========================================
+
+function renderReservasRecientes(reservas) {
+  const tbody = document.getElementById('reservasRecentesTable');
+  
+  if (reservas.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center">No hay reservas recientes</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = reservas.map(reserva => {
+    const cliente = allUsuarios.find(u => u.id === reserva.id_usuario) || {};
+    const servicio = allServicios.find(s => s.id === reserva.id_servicio) || {};
+    const empleado = allEmpleados.find(e => e.id === reserva.id_empleado) || {};
+
+    return `
+      <tr>
+        <td>${reserva.id}</td>
+        <td>${cliente.nombre || 'N/A'}</td>
+        <td>${servicio.nombre || 'N/A'}</td>
+        <td>${empleado.nombre || 'Sin asignar'}</td>
+        <td>${formatDate(reserva.fecha)}</td>
+        <td>${reserva.hora}</td>
+        <td><span class="status-badge ${reserva.estado}">${reserva.estado}</span></td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="cambiarEstadoReserva(${reserva.id})">
+            <i class="fas fa-edit"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderUsuariosTable() {
   const tbody = document.getElementById('usuariosTable');
   
-  if (usuarios.length === 0) {
+  if (allUsuarios.length === 0) {
     tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay usuarios registrados</td></tr>';
     return;
   }
 
-  tbody.innerHTML = usuarios.map(user => `
+  tbody.innerHTML = allUsuarios.map(usuario => `
     <tr>
-      <td>${user.id}</td>
-      <td>${user.nombre} ${user.apellido}</td>
-      <td>${user.email}</td>
-      <td>${user.telefono || 'N/A'}</td>
-      <td><span class="role-badge ${user.rol}">${user.rol}</span></td>
-      <td>${formatDate(user.fecha_registro)}</td>
+      <td>${usuario.id}</td>
+      <td>${usuario.nombre}</td>
+      <td>${usuario.email}</td>
+      <td>${usuario.telefono || 'N/A'}</td>
+      <td><span class="role-badge ${usuario.rol}">${usuario.rol}</span></td>
+      <td>${formatDate(usuario.creado_en)}</td>
       <td>
-        <button class="btn btn-sm btn-outline" onclick="editUser(${user.id})">
-          <i class="fas fa-edit"></i>
-        </button>
-        <button class="btn btn-sm btn-outline" onclick="deleteUser(${user.id})">
-          <i class="fas fa-trash"></i>
-        </button>
-      </td>
-    </tr>
-  `).join('');
-}
-
-function renderReservasTable(reservas) {
-  const tbody = document.getElementById('reservasTable');
-  
-  if (reservas.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay reservas registradas</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = reservas.slice(0, 10).map(reserva => `
-    <tr>
-      <td>${reserva.id}</td>
-      <td>${reserva.nombre_cliente || 'N/A'}</td>
-      <td>${reserva.servicio || 'N/A'}</td>
-      <td>${formatDate(reserva.fecha)}</td>
-      <td>${reserva.hora || 'N/A'}</td>
-      <td><span class="status-badge ${reserva.estado}">${reserva.estado}</span></td>
-      <td>
-        <button class="btn btn-sm btn-outline" onclick="viewReserva(${reserva.id})">
+        <button class="btn btn-primary btn-sm" onclick="verUsuario(${usuario.id})" title="Ver detalles">
           <i class="fas fa-eye"></i>
         </button>
       </td>
@@ -105,53 +265,258 @@ function renderReservasTable(reservas) {
   `).join('');
 }
 
-function formatDate(dateString) {
-  if (!dateString) return 'N/A';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('es-ES', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
-  });
+function renderTodasReservasTable(filtro = 'todas') {
+  const tbody = document.getElementById('todasReservasTable');
+  
+  let reservasFiltradas = allReservas;
+  if (filtro !== 'todas') {
+    reservasFiltradas = allReservas.filter(r => r.estado === filtro);
+  }
+
+  if (reservasFiltradas.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" class="text-center">No hay reservas</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = reservasFiltradas.map(reserva => {
+    const cliente = allUsuarios.find(u => u.id === reserva.id_usuario) || {};
+    const servicio = allServicios.find(s => s.id === reserva.id_servicio) || {};
+    const empleado = allEmpleados.find(e => e.id === reserva.id_empleado) || {};
+
+    return `
+      <tr>
+        <td>${reserva.id}</td>
+        <td>${cliente.nombre || 'N/A'}</td>
+        <td>${servicio.nombre || 'N/A'}</td>
+        <td>${empleado.nombre || 'Sin asignar'}</td>
+        <td>${formatDate(reserva.fecha)}</td>
+        <td>${reserva.hora}</td>
+        <td><span class="status-badge ${reserva.estado}">${reserva.estado}</span></td>
+        <td>${reserva.notas || '-'}</td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="cambiarEstadoReserva(${reserva.id})">
+            <i class="fas fa-edit"></i> Cambiar
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
-function toggleSidebar() {
-  document.querySelector('.sidebar').classList.toggle('active');
+function renderServiciosTable() {
+  const tbody = document.getElementById('serviciosTable');
+  
+  if (allServicios.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center">No hay servicios registrados</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = allServicios.map(servicio => `
+    <tr>
+      <td>${servicio.id}</td>
+      <td>${servicio.nombre}</td>
+      <td>${servicio.descripcion || 'N/A'}</td>
+      <td>${servicio.duracion_min} min</td>
+      <td>$${servicio.precio.toLocaleString()}</td>
+    </tr>
+  `).join('');
 }
 
-function setupNavigation() {
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', function(e) {
-      e.preventDefault();
-      document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-      this.classList.add('active');
+function renderEmpleadosTable() {
+  const tbody = document.getElementById('empleadosTable');
+  
+  if (allEmpleados.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center">No hay empleados registrados</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = allEmpleados.map(empleado => `
+    <tr>
+      <td>${empleado.id}</td>
+      <td>${empleado.nombre}</td>
+      <td>${empleado.email || 'N/A'}</td>
+      <td>${empleado.telefono || 'N/A'}</td>
+      <td>${empleado.especialidad || 'General'}</td>
+    </tr>
+  `).join('');
+}
+
+// ========================================
+// REPORTES
+// ========================================
+
+function loadReportesData() {
+  const reservasCompletadas = allReservas.filter(r => r.estado === 'completada');
+  const ingresosTotales = reservasCompletadas.reduce((total, r) => {
+    const servicio = allServicios.find(s => s.id === r.id_servicio);
+    return total + (servicio ? servicio.precio : 0);
+  }, 0);
+
+  document.getElementById('reporteReservas').textContent = reservasCompletadas.length;
+  document.getElementById('reporteIngresos').textContent = `$${ingresosTotales.toLocaleString()}`;
+}
+
+// ========================================
+// ACCIONES
+// ========================================
+
+async function cambiarEstadoReserva(reservaId) {
+  const reserva = allReservas.find(r => r.id === reservaId);
+  if (!reserva) return;
+
+  const estados = ['pendiente', 'confirmada', 'completada', 'cancelada'];
+  const estadoActual = reserva.estado;
+  
+  const nuevoEstado = prompt(
+    `Estado actual: ${estadoActual}\n\nNuevo estado:\n1. pendiente\n2. confirmada\n3. completada\n4. cancelada\n\nIngrese el número:`,
+    ''
+  );
+
+  if (!nuevoEstado || nuevoEstado < 1 || nuevoEstado > 4) return;
+
+  const estado = estados[parseInt(nuevoEstado) - 1];
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/reservas/${reservaId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ estado })
     });
-  });
-}
 
-function showNotification(message, type = 'info') {
-  // Implementar notificación toast
-  console.log(`[${type.toUpperCase()}] ${message}`);
-}
+    if (!response.ok) throw new Error('Error al actualizar reserva');
 
-// Funciones placeholder para acciones
-function editUser(id) {
-  console.log('Editar usuario:', id);
-  showNotification('Función en desarrollo', 'info');
-}
-
-function deleteUser(id) {
-  if (confirm('¿Estás seguro de eliminar este usuario?')) {
-    console.log('Eliminar usuario:', id);
-    showNotification('Función en desarrollo', 'info');
+    showToast(`Reserva actualizada a: ${estado}`, 'success');
+    await loadAllData();
+    
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('Error al cambiar estado de reserva', 'error');
   }
 }
 
-function viewReserva(id) {
-  console.log('Ver reserva:', id);
-  showNotification('Función en desarrollo', 'info');
+function verUsuario(userId) {
+  const usuario = allUsuarios.find(u => u.id === userId);
+  if (!usuario) return;
+
+  const reservasUsuario = allReservas.filter(r => r.id_usuario === userId);
+  
+  alert(`
+INFORMACIÓN DEL USUARIO
+
+ID: ${usuario.id}
+Nombre: ${usuario.nombre}
+Email: ${usuario.email}
+Teléfono: ${usuario.telefono || 'No registrado'}
+Rol: ${usuario.rol}
+Fecha de registro: ${formatDate(usuario.creado_en)}
+
+Reservas totales: ${reservasUsuario.length}
+Reservas completadas: ${reservasUsuario.filter(r => r.estado === 'completada').length}
+Reservas canceladas: ${reservasUsuario.filter(r => r.estado === 'cancelada').length}
+  `);
 }
 
-function showAddUserModal() {
-  showNotification('Modal de agregar usuario - En desarrollo', 'info');
+function filtrarReservas() {
+  const filtro = document.getElementById('filtroEstado').value;
+  renderTodasReservasTable(filtro);
 }
+
+// ========================================
+// BÚSQUEDA
+// ========================================
+
+document.getElementById('searchInput')?.addEventListener('input', (e) => {
+  const searchTerm = e.target.value.toLowerCase();
+  
+  // Buscar en usuarios
+  const usuariosFiltrados = allUsuarios.filter(u => 
+    u.nombre.toLowerCase().includes(searchTerm) ||
+    u.email.toLowerCase().includes(searchTerm)
+  );
+
+  // Buscar en servicios
+  const serviciosFiltrados = allServicios.filter(s => 
+    s.nombre.toLowerCase().includes(searchTerm) ||
+    (s.descripcion && s.descripcion.toLowerCase().includes(searchTerm))
+  );
+
+  // Actualizar badge de notificaciones con resultados
+  const totalResultados = usuariosFiltrados.length + serviciosFiltrados.length;
+  document.getElementById('notificationCount').textContent = totalResultados;
+});
+
+// ========================================
+// UTILIDADES
+// ========================================
+
+function formatDate(dateString) {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('es-MX', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+}
+
+function showToast(message, type = 'info') {
+  // Crear toast simple
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#667eea'};
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 10000;
+    animation: slideIn 0.3s ease;
+  `;
+  toast.textContent = message;
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.animation = 'slideOut 0.3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+// ========================================
+// ESTILOS ADICIONALES
+// ========================================
+
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  
+  @keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+  }
+
+  .text-center { text-align: center; }
+  
+  .role-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  
+  .role-badge.admin { background: #667eea; color: white; }
+  .role-badge.empleado { background: #10b981; color: white; }
+  .role-badge.cliente { background: #6b7280; color: white; }
+`;
+document.head.appendChild(style);
