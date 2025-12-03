@@ -335,11 +335,12 @@ def obtener_reservas():
         conexion = conectar()
         cursor = conexion.cursor(dictionary=True)
         
-        # JOIN con servicios y empleados para obtener nombres
+        # JOIN con servicios, empleados y usuarios para obtener toda la información
         query = """
         SELECT 
             r.*,
             s.nombre as servicio_nombre,
+            s.precio as servicio_precio,
             e.nombre as empleado_nombre,
             u.nombre as usuario_nombre
         FROM reservas r

@@ -44,7 +44,7 @@ async function cargarReservas() {
     renderReservas();
   } catch (error) {
     console.error('Error al cargar reservas:', error);
-    alert('Error al cargar las reservas. Verifica que el backend esté corriendo.');
+    showAlert('Error al cargar las reservas. Verifica que el backend esté corriendo.', 'Error');
   }
 }
 

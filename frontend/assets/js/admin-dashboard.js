@@ -2,7 +2,11 @@
 // CONFIGURACIÓN Y ESTADO
 // ========================================
 
-const API_URL = 'http://localhost:8000';
+// Función para obtener API URL
+function getApiUrl() {
+  return window.API_CONFIG?.baseURL || 'http://localhost:8000';
+}
+
 let allReservas = [];
 let allUsuarios = [];
 let allServicios = [];
@@ -13,6 +17,13 @@ let allEmpleados = [];
 // ========================================
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Verificar que config.js esté cargado
+  if (typeof window.API_CONFIG === 'undefined') {
+    console.error('config.js no está cargado correctamente');
+    setTimeout(() => location.reload(), 2000);
+    return;
+  }
+
   const token = localStorage.getItem('token');
   const userRole = localStorage.getItem('userRole');
 
@@ -131,26 +142,63 @@ async function loadAllData() {
   const token = localStorage.getItem('token');
   
   try {
+    console.log('Cargando datos desde:', getApiUrl());
+    
     // Cargar todos los datos en paralelo
     const [reservasRes, usuariosRes, serviciosRes, empleadosRes] = await Promise.all([
-      fetch(`${API_URL}/reservas`, {
+      fetch(`${getApiUrl()}/reservas`, {
         headers: { 'Authorization': `Bearer ${token}` }
+      }).catch(err => {
+        console.error('Error cargando reservas:', err);
+        return { ok: false };
       }),
-      fetch(`${API_URL}/usuarios`, {
+      fetch(`${getApiUrl()}/usuarios`, {
         headers: { 'Authorization': `Bearer ${token}` }
+      }).catch(err => {
+        console.error('Error cargando usuarios:', err);
+        return { ok: false };
       }),
-      fetch(`${API_URL}/servicios`, {
+      fetch(`${getApiUrl()}/servicios`, {
         headers: { 'Authorization': `Bearer ${token}` }
+      }).catch(err => {
+        console.error('Error cargando servicios:', err);
+        return { ok: false };
       }),
-      fetch(`${API_URL}/empleados`, {
+      fetch(`${getApiUrl()}/empleados`, {
         headers: { 'Authorization': `Bearer ${token}` }
+      }).catch(err => {
+        console.error('Error cargando empleados:', err);
+        return { ok: false };
       })
     ]);
 
-    allReservas = await reservasRes.json();
-    allUsuarios = await usuariosRes.json();
-    allServicios = await serviciosRes.json();
-    allEmpleados = await empleadosRes.json();
+    // Manejar respuestas y extraer datos
+    if (reservasRes.ok) {
+      const reservasData = await reservasRes.json();
+      allReservas = reservasData.reservas || reservasData || [];
+    }
+    
+    if (usuariosRes.ok) {
+      const usuariosData = await usuariosRes.json();
+      allUsuarios = usuariosData.usuarios || usuariosData || [];
+    }
+    
+    if (serviciosRes.ok) {
+      const serviciosData = await serviciosRes.json();
+      allServicios = serviciosData.servicios || serviciosData || [];
+    }
+    
+    if (empleadosRes.ok) {
+      const empleadosData = await empleadosRes.json();
+      allEmpleados = empleadosData.empleados || empleadosData || [];
+    }
+
+    console.log('Datos cargados:', {
+      reservas: allReservas.length,
+      usuarios: allUsuarios.length,
+      servicios: allServicios.length,
+      empleados: allEmpleados.length
+    });
 
     // Cargar dashboard por defecto
     loadDashboardData();
@@ -166,26 +214,61 @@ async function loadAllData() {
 // ========================================
 
 function loadDashboardData() {
+  console.log('Cargando dashboard con datos:', {
+    reservas: allReservas.length,
+    usuarios: allUsuarios.length,
+    servicios: allServicios.length
+  });
+
   // Calcular estadísticas
   const reservasActivas = allReservas.filter(r => 
     r.estado === 'confirmada' || r.estado === 'pendiente'
   ).length;
   
   const reservasCompletadas = allReservas.filter(r => r.estado === 'completada');
-  const ingresosMes = reservasCompletadas.reduce((total, r) => {
-    const servicio = allServicios.find(s => s.id === r.id_servicio);
-    return total + (servicio ? servicio.precio : 0);
+  
+  // Calcular ingresos del mes actual
+  const fechaActual = new Date();
+  const mesActual = fechaActual.getMonth();
+  const añoActual = fechaActual.getFullYear();
+  
+  const reservasDelMes = reservasCompletadas.filter(r => {
+    const fechaReserva = new Date(r.fecha);
+    return fechaReserva.getMonth() === mesActual && fechaReserva.getFullYear() === añoActual;
+  });
+  
+  const ingresosMes = reservasDelMes.reduce((total, r) => {
+    const precio = parseFloat(r.servicio_precio) || 0;
+    console.log('Reserva del mes:', {
+      id: r.id,
+      fecha: r.fecha,
+      servicio: r.servicio_nombre,
+      precio: precio
+    });
+    return total + precio;
+  }, 0);
+  
+  // Calcular ingresos totales (todas las completadas)
+  const ingresosTotales = reservasCompletadas.reduce((total, r) => {
+    return total + (parseFloat(r.servicio_precio) || 0);
   }, 0);
 
+  console.log('Ingresos del mes:', ingresosMes, 'de', reservasDelMes.length, 'reservas');
+  console.log('Ingresos totales:', ingresosTotales, 'de', reservasCompletadas.length, 'reservas');
+
   // Actualizar stats cards
-  updateStatCard('totalUsuarios', allUsuarios.length, '+' + allUsuarios.length);
+  updateStatCard('totalUsuarios', allUsuarios.length, `+${allUsuarios.length}`);
   updateStatCard('totalReservas', reservasActivas, 'Activas');
   updateStatCard('totalIngresos', `$${ingresosMes.toLocaleString()}`, `${reservasCompletadas.length} completadas`);
   updateStatCard('totalServicios', allServicios.length, 'Disponibles');
 
   // Renderizar reservas recientes (últimas 10)
   const reservasRecientes = [...allReservas]
-    .sort((a, b) => new Date(b.creado_en) - new Date(a.creado_en))
+    .sort((a, b) => {
+      const fechaA = new Date(a.fecha || a.creado_en);
+      const fechaB = new Date(b.fecha || b.creado_en);
+      return fechaB - fechaA;
+    })
     .slice(0, 10);
   
   renderReservasRecientes(reservasRecientes);
@@ -195,9 +278,19 @@ function updateStatCard(elementId, value, changeText) {
   const element = document.getElementById(elementId);
   if (element) {
     element.textContent = value;
-    
-    // Actualizar texto de cambio si existe
-    const changeElement = document.getElementById(elementId + 'Change');
+  }
+  
+  // Actualizar texto de cambio - los IDs están en formato diferente en el HTML
+  const changeMapping = {
+    'totalUsuarios': 'usuariosChange',
+    'totalReservas': 'reservasChange',
+    'totalIngresos': 'ingresosChange',
+    'totalServicios': 'serviciosChange'
+  };
+  
+  const changeId = changeMapping[elementId];
+  if (changeId) {
+    const changeElement = document.getElementById(changeId);
     if (changeElement) {
       changeElement.textContent = changeText;
     }
@@ -367,8 +460,9 @@ async function cambiarEstadoReserva(reservaId) {
   const estados = ['pendiente', 'confirmada', 'completada', 'cancelada'];
   const estadoActual = reserva.estado;
   
-  const nuevoEstado = prompt(
+  const nuevoEstado = await showPrompt(
     `Estado actual: ${estadoActual}\n\nNuevo estado:\n1. pendiente\n2. confirmada\n3. completada\n4. cancelada\n\nIngrese el número:`,
+    'Cambiar Estado de Reserva',
     ''
   );
 
@@ -378,13 +472,12 @@ async function cambiarEstadoReserva(reservaId) {
 
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/reservas/${reservaId}`, {
+    // El backend espera query params
+    const response = await fetch(`${getApiUrl()}/reservas/${reservaId}?estado=${encodeURIComponent(estado)}`, {
       method: 'PUT',
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ estado })
+        'Authorization': `Bearer ${token}`
+      }
     });
 
     if (!response.ok) throw new Error('Error al actualizar reserva');

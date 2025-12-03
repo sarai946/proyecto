@@ -357,6 +357,61 @@ function loadDashboardData() {
 
   // Renderizar próximas citas
   renderProximasCitas(citasSemana);
+
+  // Renderizar estadísticas del mes
+  renderEstadisticasMes();
+}
+
+// ========================================
+// ESTADÍSTICAS DEL MES
+// ========================================
+
+function renderEstadisticasMes() {
+  const mesActual = new Date().getMonth();
+  const anioActual = new Date().getFullYear();
+
+  // Filtrar reservas del mes actual
+  const reservasMes = misReservas.filter(r => {
+    if (!r.fecha) return false;
+    const fecha = new Date(r.fecha);
+    return fecha.getMonth() === mesActual && fecha.getFullYear() === anioActual;
+  });
+
+  // Total de citas del mes
+  const totalCitas = reservasMes.length;
+
+  // Clientes únicos atendidos
+  const clientesUnicos = new Set(reservasMes.map(r => r.id_usuario));
+  const clientesAtendidos = clientesUnicos.size;
+
+  // Horas trabajadas (estimado basado en duración de servicios)
+  let horasTotales = 0;
+  reservasMes.forEach(r => {
+    const servicio = allServicios.find(s => s.id === r.id_servicio);
+    if (servicio && servicio.duracion_min) {
+      horasTotales += servicio.duracion_min / 60;
+    }
+  });
+
+  // Ingresos generados (estimado basado en precios de servicios)
+  let ingresosTotales = 0;
+  reservasMes.forEach(r => {
+    const servicio = allServicios.find(s => s.id === r.id_servicio);
+    if (servicio && servicio.precio && r.estado === 'completada') {
+      ingresosTotales += parseFloat(servicio.precio);
+    }
+  });
+
+  // Actualizar elementos
+  const updateStat = (id, value) => {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+  };
+
+  updateStat('totalCitasMes', totalCitas);
+  updateStat('clientesAtendidos', clientesAtendidos);
+  updateStat('horasTrabajadas', Math.round(horasTotales));
+  updateStat('ingresosGenerados', `$${ingresosTotales.toFixed(2)}`);
 }
 
 function renderAgendaHoy(citasHoy) {
@@ -421,7 +476,7 @@ function renderProximasCitas(citas) {
   }
   
   if (citas.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center">No hay citas próximas</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center">No hay citas próximas</td></tr>';
     return;
   }
 
@@ -432,7 +487,7 @@ function renderProximasCitas(citas) {
       const dateB = new Date(`${b.fecha || '2000-01-01'}T${b.hora || '00:00'}`);
       return dateA - dateB;
     })
-    .slice(0, 10);
+    .slice(0, 6);
 
   tbody.innerHTML = citasOrdenadas.map(cita => {
     const cliente = allUsuarios.find(u => u.id === cita.id_usuario) || { nombre: 'N/A' };
@@ -448,13 +503,7 @@ function renderProximasCitas(citas) {
           </div>
         </td>
         <td>${servicio.nombre}</td>
-        <td><span style="color: #6b7280;">${servicio.duracion_min} min</span></td>
         <td><span class="status-badge ${cita.estado || 'pendiente'}">${cita.estado || 'pendiente'}</span></td>
-        <td>
-          <button class="btn btn-primary btn-sm" onclick="cambiarEstadoCita(${cita.id})" title="Cambiar estado">
-            <i class="fas fa-edit"></i> Editar
-          </button>
-        </td>
       </tr>
     `;
   }).join('');
@@ -654,8 +703,9 @@ async function cambiarEstadoCita(citaId) {
   const cita = misReservas.find(r => r.id === citaId);
   if (!cita) return;
 
-  const nuevoEstado = prompt(
+  const nuevoEstado = await showPrompt(
     `Estado actual: ${cita.estado}\n\nNuevo estado:\n1. pendiente\n2. confirmada\n3. completada\n4. cancelada\n\nIngrese el número:`,
+    'Cambiar Estado de Cita',
     ''
   );
 
@@ -666,23 +716,24 @@ async function cambiarEstadoCita(citaId) {
 
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${getApiUrl()}/reservas/${citaId}`, {
+    const response = await fetch(`${getApiUrl()}/reservas/${citaId}?estado=${encodeURIComponent(estado)}`, {
       method: 'PUT',
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ estado })
+        'Authorization': `Bearer ${token}`
+      }
     });
 
-    if (!response.ok) throw new Error('Error al actualizar cita');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Error al actualizar cita');
+    }
 
-    showToast(`Cita actualizada a: ${estado}`, 'success');
+    showToast(`✅ Cita actualizada a: ${estado}`, 'success');
     await loadAllData();
     
   } catch (error) {
     console.error('Error:', error);
-    showToast('Error al cambiar estado de cita', 'error');
+    showToast(error.message || 'Error al cambiar estado de cita', 'error');
   }
 }
 

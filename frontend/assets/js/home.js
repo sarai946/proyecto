@@ -86,8 +86,9 @@ function checkSession() {
 }
 
 // Función de logout
-function logout() {
-  if (confirm('¿Estás segura de que quieres cerrar sesión?')) {
+async function logout() {
+  const confirmed = await showConfirm('¿Estás segura de que quieres cerrar sesión?', 'Cerrar Sesión');
+  if (confirmed) {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
     localStorage.removeItem('token_expiry');

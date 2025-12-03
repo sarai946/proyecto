@@ -52,24 +52,30 @@
 <main class="main-content">
   <!-- Top Bar -->
   <header class="topbar">
-    <div class="topbar-left">
-      <button class="btn-menu" id="menuToggle">
+    <div class="topbar-section topbar-logo">
+      <button class="btn-menu" id="menuToggle" aria-label="Abrir menú">
         <i class="fas fa-bars"></i>
       </button>
+    </div>
+    <div class="topbar-section topbar-title">
       <h1 id="pageTitle">Panel de Empleado</h1>
     </div>
-    <div class="topbar-right">
-      <div class="search-box">
-        <i class="fas fa-clock"></i>
-        <span id="currentTime">00:00</span>
-      </div>
-      <button class="btn-notification">
+    <div class="topbar-section topbar-clock">
+      <i class="fas fa-clock"></i>
+      <span id="currentTime">00:00</span>
+    </div>
+    <div class="topbar-section topbar-notification">
+      <button class="btn-notification" aria-label="Notificaciones">
         <i class="fas fa-bell"></i>
         <span class="badge" id="notificationCount">0</span>
       </button>
+    </div>
+    <div class="topbar-section topbar-profile">
       <div class="user-menu">
         <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=empleado" alt="Empleado" class="avatar" id="employeeAvatar">
-        <span id="userName">Empleado</span>
+        <div class="user-info">
+          <span id="userName">Empleado</span>
+        </div>
       </div>
     </div>
   </header>
@@ -142,30 +148,70 @@
         </div>
       </div>
 
-      <!-- Próximas Citas -->
-      <div class="card">
-        <div class="card-header">
-          <h3><i class="fas fa-calendar-alt"></i> Próximas Citas</h3>
+      <!-- Grid de 2 columnas: Próximas Citas y Estadísticas -->
+      <div class="dashboard-grid-2">
+        <!-- Próximas Citas -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-calendar-alt"></i> Próximas Citas</h3>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Hora</th>
+                    <th>Cliente</th>
+                    <th>Servicio</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="proximasCitasTable">
+                  <tr>
+                    <td colspan="4" class="text-center">Cargando...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Hora</th>
-                  <th>Cliente</th>
-                  <th>Servicio</th>
-                  <th>Duración</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="proximasCitasTable">
-                <tr>
-                  <td colspan="6" class="text-center">Cargando...</td>
-                </tr>
-              </tbody>
-            </table>
+
+        <!-- Estadísticas del Mes -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-chart-pie"></i> Estadísticas del Mes</h3>
+          </div>
+          <div class="card-body">
+            <div class="stats-list">
+              <div class="stat-item">
+                <div class="stat-label">
+                  <i class="fas fa-calendar-check" style="color: #667eea;"></i>
+                  Total de Citas
+                </div>
+                <div class="stat-value" id="totalCitasMes">0</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">
+                  <i class="fas fa-users" style="color: #3b82f6;"></i>
+                  Clientes Atendidos
+                </div>
+                <div class="stat-value" id="clientesAtendidos">0</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">
+                  <i class="fas fa-clock" style="color: #f59e0b;"></i>
+                  Horas Trabajadas
+                </div>
+                <div class="stat-value" id="horasTrabajadas">0</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">
+                  <i class="fas fa-dollar-sign" style="color: #10b981;"></i>
+                  Ingresos Generados
+                </div>
+                <div class="stat-value" id="ingresosGenerados">$0</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -292,137 +338,7 @@
 </main>
 
 <script src="assets/js/config.js"></script>
-<script src="assets/js/empleado-dashboard.js"></script>
-
-</body>
-</html>
-        <div class="stat-info">
-          <h3 id="citasSemana">0</h3>
-          <p>Citas esta Semana</p>
-          <span class="stat-time">8 pendientes</span>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon green">
-          <i class="fas fa-check-circle"></i>
-        </div>
-        <div class="stat-info">
-          <h3 id="citasCompletadas">0</h3>
-          <p>Completadas este Mes</p>
-          <span class="stat-change positive">+5 vs mes anterior</span>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon orange">
-          <i class="fas fa-star"></i>
-        </div>
-        <div class="stat-info">
-          <h3>4.9</h3>
-          <p>Calificación Promedio</p>
-          <span class="stat-reviews">De 45 reseñas</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Citas de Hoy -->
-    <div class="card">
-      <div class="card-header">
-        <h3><i class="fas fa-calendar-day"></i> Agenda del Día</h3>
-        <div class="date-display" id="todayDate">
-          <i class="fas fa-calendar"></i>
-          <span>--</span>
-        </div>
-      </div>
-      <div class="card-body">
-        <div class="timeline" id="citasTimeline">
-          <div class="loading-state">
-            <i class="fas fa-spinner fa-spin"></i> Cargando agenda...
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="cards-row">
-      <!-- Próximas Citas -->
-      <div class="card">
-        <div class="card-header">
-          <h3><i class="fas fa-clock"></i> Próximas Citas</h3>
-        </div>
-        <div class="card-body">
-          <div class="appointments-list" id="proximasCitas">
-            <div class="loading-state">
-              <i class="fas fa-spinner fa-spin"></i> Cargando...
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Estadísticas Rápidas -->
-      <div class="card">
-        <div class="card-header">
-          <h3><i class="fas fa-chart-pie"></i> Estadísticas del Mes</h3>
-        </div>
-        <div class="card-body">
-          <div class="quick-stats">
-            <div class="quick-stat-item">
-              <span class="stat-label">Total de Citas</span>
-              <span class="stat-value" id="totalCitasMes">0</span>
-            </div>
-            <div class="quick-stat-item">
-              <span class="stat-label">Clientes Atendidos</span>
-              <span class="stat-value" id="clientesAtendidos">0</span>
-            </div>
-            <div class="quick-stat-item">
-              <span class="stat-label">Horas Trabajadas</span>
-              <span class="stat-value" id="horasTrabajadas">0</span>
-            </div>
-            <div class="quick-stat-item">
-              <span class="stat-label">Ingresos Generados</span>
-              <span class="stat-value">$<span id="ingresosGenerados">0</span></span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Historial de Citas -->
-    <div class="card">
-      <div class="card-header">
-        <h3><i class="fas fa-history"></i> Historial Reciente</h3>
-        <div class="filter-buttons">
-          <button class="btn btn-sm active" data-filter="all">Todas</button>
-          <button class="btn btn-sm" data-filter="completadas">Completadas</button>
-          <button class="btn btn-sm" data-filter="canceladas">Canceladas</button>
-        </div>
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Fecha y Hora</th>
-                <th>Cliente</th>
-                <th>Servicio</th>
-                <th>Duración</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="historialTable">
-              <tr>
-                <td colspan="6" class="text-center">Cargando...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-</main>
-
-<script src="assets/js/config.js"></script>
+<script src="assets/js/modal-system.js"></script>
 <script src="assets/js/empleado-dashboard.js"></script>
 
 </body>

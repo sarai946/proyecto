@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   // Event listeners
   document.getElementById('menuToggle')?.addEventListener('click', toggleSidebar);
+  document.getElementById('btnNotifications')?.addEventListener('click', toggleNotifications);
   setupNavigation();
   setupAgendarForm();
 
@@ -96,6 +97,83 @@ function logout() {
 
 // Exportar función global
 window.logout = logout;
+
+// ========================================
+// NOTIFICACIONES
+// ========================================
+
+function toggleNotifications() {
+  const panel = document.getElementById('notificationsPanel');
+  const isVisible = panel.style.display !== 'none';
+  panel.style.display = isVisible ? 'none' : 'block';
+  
+  if (!isVisible) {
+    renderNotifications();
+  }
+}
+
+window.toggleNotifications = toggleNotifications;
+
+function renderNotifications() {
+  const container = document.getElementById('notificationsList');
+  
+  // Obtener citas pendientes y próximas
+  const hoy = new Date();
+  const citasProximas = todasReservas.filter(cita => {
+    const fechaCita = new Date(cita.fecha);
+    const diffDias = Math.ceil((fechaCita - hoy) / (1000 * 60 * 60 * 24));
+    return (cita.estado === 'pendiente' || cita.estado === 'confirmada') && diffDias >= 0 && diffDias <= 7;
+  }).sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+  
+  if (citasProximas.length === 0) {
+    container.innerHTML = '<p class="no-notifications">No tienes notificaciones</p>';
+    return;
+  }
+  
+  container.innerHTML = citasProximas.map(cita => {
+    const fechaCita = new Date(cita.fecha);
+    const diffDias = Math.ceil((fechaCita - hoy) / (1000 * 60 * 60 * 24));
+    let mensaje = '';
+    let icono = 'fa-calendar-check';
+    let color = 'blue';
+    
+    if (diffDias === 0) {
+      mensaje = '¡Hoy!';
+      icono = 'fa-clock';
+      color = 'red';
+    } else if (diffDias === 1) {
+      mensaje = 'Mañana';
+      icono = 'fa-calendar-day';
+      color = 'orange';
+    } else if (diffDias <= 3) {
+      mensaje = `En ${diffDias} días`;
+      color = 'yellow';
+    } else {
+      mensaje = `En ${diffDias} días`;
+    }
+    
+    return `
+      <div class="notification-item ${color}">
+        <div class="notification-icon">
+          <i class="fas ${icono}"></i>
+        </div>
+        <div class="notification-content">
+          <h4>${mensaje} - ${cita.servicio_nombre || 'Servicio'}</h4>
+          <p><i class="fas fa-calendar"></i> ${formatDate(cita.fecha)} a las ${cita.hora?.substring(0, 5) || '00:00'}</p>
+          <p><i class="fas fa-user"></i> ${cita.empleado_nombre || 'Empleado no asignado'}</p>
+          <span class="notification-badge ${cita.estado}">${cita.estado}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function formatDate(dateStr) {
+  const fecha = new Date(dateStr);
+  const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  return `${dias[fecha.getDay()]} ${fecha.getDate()} ${meses[fecha.getMonth()]}`;
+}
 
 // Actualizar avatares
 function updateAvatarImages(seed) {
@@ -703,9 +781,8 @@ function agendarConServicio(servicioId) {
 
 // Cancelar reserva
 async function cancelarReserva(reservaId) {
-  if (!confirm('¿Estás segura de que deseas cancelar esta cita?')) {
-    return;
-  }
+  const confirmed = await showConfirm('¿Estás segura de que deseas cancelar esta cita?', 'Cancelar Cita');
+  if (!confirmed) return;
   
   try {
     await apiRequest(`/reservas/${reservaId}`, {
