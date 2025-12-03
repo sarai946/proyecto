@@ -332,7 +332,11 @@ function loadDashboardData() {
 
   // Próxima cita
   const proximaCita = citasHoy.filter(c => c.estado !== 'cancelada')
-    .sort((a, b) => (a.hora || '').localeCompare(b.hora || ''))[0];
+    .sort((a, b) => {
+      const horaA = String(a.hora || '');
+      const horaB = String(b.hora || '');
+      return horaA.localeCompare(horaB);
+    })[0];
   
   if (proximaCita && proximaCita.hora) {
     const ahora = new Date();
@@ -428,10 +432,14 @@ function renderAgendaHoy(citasHoy) {
   }
 
   container.innerHTML = citasHoy
-    .sort((a, b) => (a.hora || '').localeCompare(b.hora || ''))
+    .sort((a, b) => {
+      const horaA = String(a.hora || '');
+      const horaB = String(b.hora || '');
+      return horaA.localeCompare(horaB);
+    })
     .map(cita => {
       const cliente = allUsuarios.find(u => u.id === cita.id_usuario) || { nombre: 'Cliente' };
-      const servicio = allServicios.find(s => s.id === cita.id_servicio) || { nombre: 'Servicio', duracion_min: 60 };
+      const servicio = allServicios.find(s => s.id === (cita.id_servicio || cita.servicio_id)) || { nombre: 'Servicio', duracion_min: 60 };
       
       const estadoColor = {
         'pendiente': '#f59e0b',
@@ -491,7 +499,7 @@ function renderProximasCitas(citas) {
 
   tbody.innerHTML = citasOrdenadas.map(cita => {
     const cliente = allUsuarios.find(u => u.id === cita.id_usuario) || { nombre: 'N/A' };
-    const servicio = allServicios.find(s => s.id === cita.id_servicio) || { nombre: 'N/A', duracion_min: 60 };
+    const servicio = allServicios.find(s => s.id === (cita.id_servicio || cita.servicio_id)) || { nombre: 'N/A', duracion_min: 60 };
 
     return `
       <tr style="transition: background 0.2s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
@@ -533,13 +541,13 @@ function renderMisCitasTable(filtro = 'todas') {
 
   tbody.innerHTML = citasFiltradas
     .sort((a, b) => {
-      const dateA = new Date(`${b.fecha || '2000-01-01'}T${b.hora || '00:00'}`);
-      const dateB = new Date(`${a.fecha || '2000-01-01'}T${a.hora || '00:00'}`);
+      const dateA = new Date(`${b.fecha || '2000-01-01'}T${String(b.hora || '00:00')}`);
+      const dateB = new Date(`${a.fecha || '2000-01-01'}T${String(a.hora || '00:00')}`);
       return dateA - dateB;
     })
     .map(cita => {
       const cliente = allUsuarios.find(u => u.id === cita.id_usuario) || { nombre: 'N/A' };
-      const servicio = allServicios.find(s => s.id === cita.id_servicio) || { nombre: 'N/A' };
+      const servicio = allServicios.find(s => s.id === (cita.id_servicio || cita.servicio_id)) || { nombre: 'N/A' };
 
       return `
         <tr>
@@ -591,10 +599,14 @@ function renderCitasHoy() {
   }
 
   container.innerHTML = citasHoy
-    .sort((a, b) => (a.hora || '').localeCompare(b.hora || ''))
+    .sort((a, b) => {
+      const horaA = String(a.hora || '');
+      const horaB = String(b.hora || '');
+      return horaA.localeCompare(horaB);
+    })
     .map(cita => {
       const cliente = allUsuarios.find(u => u.id === cita.id_usuario) || { nombre: 'Cliente' };
-      const servicio = allServicios.find(s => s.id === cita.id_servicio) || { nombre: 'Servicio', duracion_min: 60 };
+      const servicio = allServicios.find(s => s.id === (cita.id_servicio || cita.servicio_id)) || { nombre: 'Servicio', duracion_min: 60 };
       
       return `
         <div style="background: white; border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 5px solid #667eea;">

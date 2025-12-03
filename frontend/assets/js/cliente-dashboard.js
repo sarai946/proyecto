@@ -19,6 +19,8 @@ const galeriaImagenes = [
   { src: 'assets/img/13.jpg', title: 'Colores Vibrantes', desc: 'Diseños llamativos' },
   { src: 'assets/img/15.jpg', title: 'Minimalista Chic', desc: 'Elegancia simple' },
   { src: 'assets/img/16.jpg', title: 'Glamour Total', desc: 'Brillo y sofisticación' },
+  { src: 'assets/img/17.jpg', title: 'Diseño Innovador', desc: 'Nuevas tendencias' },
+  { src: 'assets/img/18.jpg', title: 'Estilo Único', desc: 'Personaliza tu look' },
   { src: 'assets/img/unas1.jpg', title: 'Arte en Uñas', desc: 'Diseños de autor' },
   { src: 'assets/img/unas2.jpg', title: 'Creatividad', desc: 'Expresión personal' },
 ];
